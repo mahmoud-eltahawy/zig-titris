@@ -38,41 +38,42 @@ fn handle_events(state: *State) void {
 
 fn draw(_: *State) void {
     rl.clearBackground(.black);
-    // rl.drawText("hello world", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 26, .white);
 
     draw_coordientants();
-    // block(.{ .x = 0, .y = 0 });
-    // block(.{ .x = 0, .y = 1 });
-    // block(.{ .x = 1, .y = 1 });
+
     draw_shape(.{ .x = 0, .y = 0 }, .O);
     draw_shape(.{ .x = 2, .y = 2 }, .O);
 
-    draw_shape(.{ .x = 4, .y = 4 }, .HI);
-    draw_shape(.{ .x = 8, .y = 5 }, .HI);
+    draw_shape(.{ .x = 4, .y = 4 }, .{ .I = .Horizontal });
+    draw_shape(.{ .x = 8, .y = 5 }, .{ .I = .Horizontal });
 
-    draw_shape(.{ .x = 12, .y = 6 }, .VI);
-    draw_shape(.{ .x = 13, .y = 10 }, .VI);
+    draw_shape(.{ .x = 12, .y = 6 }, .{ .I = .Vertical });
+    draw_shape(.{ .x = 13, .y = 10 }, .{ .I = .Vertical });
 
-    draw_shape(.{ .x = 14, .y = 14 }, .L);
-    draw_shape(.{ .x = 16, .y = 17 }, .L);
+    draw_shape(.{ .x = 14, .y = 14 }, .{ .L = .Up });
+    draw_shape(.{ .x = 16, .y = 17 }, .{ .L = .Up });
 
-    draw_shape(.{ .x = 14, .y = 20 }, .J);
-    draw_shape(.{ .x = 12, .y = 23 }, .J);
+    draw_shape(.{ .x = 14, .y = 20 }, .{ .J = .Up });
+    draw_shape(.{ .x = 12, .y = 23 }, .{ .J = .Up });
 
-    draw_shape(.{ .x = 9, .y = 26 }, .T);
+    draw_shape(.{ .x = 9, .y = 26 }, .{ .T = .Up });
 
-    draw_shape(.{ .x = 6, .y = 29 }, .Z);
+    draw_shape(.{ .x = 6, .y = 29 }, .{ .Z = .Horizontal });
 }
 
-const Block = enum {
-    O,
-    HI,
-    VI,
-    L,
-    J,
-    T,
-    Z,
+const Orientation = enum {
+    Vertical,
+    Horizontal,
 };
+
+const Direction = enum {
+    Up,
+    Down,
+    Right,
+    Left,
+};
+
+const Tetrominoes = union(enum) { O, I: Orientation, Z: Orientation, L: Direction, J: Direction, T: Direction };
 
 fn block(grid_pos: rl.Vector2) void {
     const pos = grid_pos.scale(SINGLE_BOX_SIZE);
@@ -81,7 +82,7 @@ fn block(grid_pos: rl.Vector2) void {
     rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
 }
 
-fn draw_shape(grid_pos: rl.Vector2, shape: Block) void {
+fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
     switch (shape) {
         .O => {
             block(grid_pos);
@@ -89,17 +90,20 @@ fn draw_shape(grid_pos: rl.Vector2, shape: Block) void {
             block(grid_pos.add(.{ .x = 0, .y = 1 }));
             block(grid_pos.add(.{ .x = 1, .y = 1 }));
         },
-        .HI => {
+        .I => |orientation| {
             block(grid_pos);
-            block(grid_pos.add(.{ .x = 1, .y = 0 }));
-            block(grid_pos.add(.{ .x = 2, .y = 0 }));
-            block(grid_pos.add(.{ .x = 3, .y = 0 }));
-        },
-        .VI => {
-            block(grid_pos);
-            block(grid_pos.add(.{ .x = 0, .y = 1 }));
-            block(grid_pos.add(.{ .x = 0, .y = 2 }));
-            block(grid_pos.add(.{ .x = 0, .y = 3 }));
+            switch (orientation) {
+                .Vertical => {
+                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 0, .y = 2 }));
+                    block(grid_pos.add(.{ .x = 0, .y = 3 }));
+                },
+                .Horizontal => {
+                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
+                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
+                    block(grid_pos.add(.{ .x = 3, .y = 0 }));
+                },
+            }
         },
         .L => {
             block(grid_pos);
