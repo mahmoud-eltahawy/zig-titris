@@ -41,93 +41,58 @@ fn draw(_: *State) void {
     // rl.drawText("hello world", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 26, .white);
 
     draw_coordientants();
-    draw_shape(.{ .x = 0, .y = 0 }, .OBlock);
-    draw_shape(.{ .x = 2, .y = 2 }, .OBlock);
+    // block(.{ .x = 0, .y = 0 });
+    // block(.{ .x = 0, .y = 1 });
+    // block(.{ .x = 1, .y = 1 });
+    draw_shape(.{ .x = 0, .y = 0 }, .O);
+    draw_shape(.{ .x = 2, .y = 2 }, .O);
 
-    draw_shape(.{ .x = 4, .y = 4 }, .HIBlock);
-    draw_shape(.{ .x = 8, .y = 5 }, .HIBlock);
+    draw_shape(.{ .x = 4, .y = 4 }, .HI);
+    draw_shape(.{ .x = 8, .y = 5 }, .HI);
 
-    draw_shape(.{ .x = 12, .y = 6 }, .VIBlock);
-    draw_shape(.{ .x = 13, .y = 10 }, .VIBlock);
+    draw_shape(.{ .x = 12, .y = 6 }, .VI);
+    draw_shape(.{ .x = 13, .y = 10 }, .VI);
+
+    draw_shape(.{ .x = 14, .y = 14 }, .L);
+    draw_shape(.{ .x = 16, .y = 17 }, .L);
 }
 
-const Shape = enum {
-    OBlock,
-    HIBlock,
-    VIBlock,
+const Block = enum {
+    O,
+    HI,
+    VI,
+    L,
 };
 
-fn draw_shape(grid_pos: rl.Vector2, shape: Shape) void {
-    const pos = grid_pos.add(.{ .x = 1, .y = 1 }).scale(SINGLE_BOX_SIZE);
-    const cx = pos.x - SINGLE_BOX_SIZE;
-    const cy = pos.y - SINGLE_BOX_SIZE;
-    const x: i32 = @trunc(cx);
-    const y: i32 = @trunc(cy);
+fn block(grid_pos: rl.Vector2) void {
+    const pos = grid_pos.scale(SINGLE_BOX_SIZE);
+    rl.drawRectangleV(pos, .{ .x = SINGLE_BOX_SIZE, .y = SINGLE_BOX_SIZE }, .white);
+    const rect = rl.Rectangle.init(pos.x, pos.y, SINGLE_BOX_SIZE, SINGLE_BOX_SIZE);
+    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
+}
 
+fn draw_shape(grid_pos: rl.Vector2, shape: Block) void {
+    block(grid_pos);
     switch (shape) {
-        .OBlock => {
-            const top_left: rl.Vector2 = .{ .x = cx, .y = cy };
-            const top_right: rl.Vector2 = .{ .x = cx + BLOCK_SIZE, .y = cy };
-            const bottom_right: rl.Vector2 = .{ .x = cx + BLOCK_SIZE, .y = cy + BLOCK_SIZE };
-            const bottom_left: rl.Vector2 = .{ .x = cx, .y = cy + BLOCK_SIZE };
-            rl.drawRectangle(x, y, BLOCK_SIZE, BLOCK_SIZE, .white);
-            const rect = rl.Rectangle.init(cx, cy, BLOCK_SIZE, BLOCK_SIZE);
-            rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
-
-            const corners = [5]rl.Vector2{ top_left, top_right, bottom_right, bottom_left, top_left };
-
-            var centers: [4]rl.Vector2 = @splat(rl.Vector2.zero());
-            for (0..corners.len - 1) |i| {
-                centers[i] = corners[i].add(corners[i + 1]).scale(0.5);
-            }
-            rl.drawLineEx(centers[0], centers[2], LINES_THICKNESS, .red);
-            rl.drawLineEx(centers[1], centers[3], LINES_THICKNESS, .red);
+        .O => {
+            block(grid_pos.add(.{ .x = 1, .y = 0 }));
+            block(grid_pos.add(.{ .x = 0, .y = 1 }));
+            block(grid_pos.add(.{ .x = 1, .y = 1 }));
         },
-        .HIBlock => {
-            const top_left: rl.Vector2 = .{ .x = cx, .y = cy };
-            const top_right: rl.Vector2 = .{ .x = cx + SINGLE_BOX_SIZE * 4, .y = cy };
-            const bottom_right: rl.Vector2 = .{ .x = cx + SINGLE_BOX_SIZE * 4, .y = cy + SINGLE_BOX_SIZE };
-            const bottom_left: rl.Vector2 = .{ .x = cx, .y = cy + SINGLE_BOX_SIZE };
-
-            rl.drawRectangle(x, y, BLOCK_SIZE * 2, SINGLE_BOX_SIZE, .white);
-            const rect = rl.Rectangle.init(cx, cy, BLOCK_SIZE * 2, SINGLE_BOX_SIZE);
-            rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
-
-            const top_center = top_left.add(top_right).scale(0.5);
-            const bottom_center = bottom_left.add(bottom_right).scale(0.5);
-
-            const top_left_center = top_left.add(top_center).scale(0.5);
-            const bottom_left_center = bottom_left.add(bottom_center).scale(0.5);
-
-            const top_right_center = top_right.add(top_center).scale(0.5);
-            const bottom_right_center = bottom_right.add(bottom_center).scale(0.5);
-
-            rl.drawLineEx(top_center, bottom_center, LINES_THICKNESS, .red);
-            rl.drawLineEx(top_left_center, bottom_left_center, LINES_THICKNESS, .red);
-            rl.drawLineEx(top_right_center, bottom_right_center, LINES_THICKNESS, .red);
+        .HI => {
+            block(grid_pos.add(.{ .x = 1, .y = 0 }));
+            block(grid_pos.add(.{ .x = 2, .y = 0 }));
+            block(grid_pos.add(.{ .x = 3, .y = 0 }));
         },
-        .VIBlock => {
-            const top_left: rl.Vector2 = .{ .x = cx, .y = cy };
-            const top_right: rl.Vector2 = .{ .x = cx + SINGLE_BOX_SIZE, .y = cy };
-            const bottom_right: rl.Vector2 = .{ .x = cx + SINGLE_BOX_SIZE, .y = cy + BLOCK_SIZE * 2 };
-            const bottom_left: rl.Vector2 = .{ .x = cx, .y = cy + BLOCK_SIZE * 2 };
-
-            rl.drawRectangle(x, y, SINGLE_BOX_SIZE, BLOCK_SIZE * 2, .white);
-            const rect = rl.Rectangle.init(cx, cy, SINGLE_BOX_SIZE, BLOCK_SIZE * 2);
-            rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
-
-            const left_center = top_left.add(bottom_left).scale(0.5);
-            const right_center = top_right.add(bottom_right).scale(0.5);
-
-            const left_top_center = top_left.add(left_center).scale(0.5);
-            const right_top_center = top_right.add(right_center).scale(0.5);
-
-            const left_bottom_center = bottom_left.add(left_center).scale(0.5);
-            const right_bottom_center = bottom_right.add(right_center).scale(0.5);
-
-            rl.drawLineEx(left_center, right_center, LINES_THICKNESS, .red);
-            rl.drawLineEx(left_top_center, right_top_center, LINES_THICKNESS, .red);
-            rl.drawLineEx(left_bottom_center, right_bottom_center, LINES_THICKNESS, .red);
+        .VI => {
+            block(grid_pos.add(.{ .x = 0, .y = 1 }));
+            block(grid_pos.add(.{ .x = 0, .y = 2 }));
+            block(grid_pos.add(.{ .x = 0, .y = 3 }));
+        },
+        .L => {
+            block(grid_pos.add(.{ .x = 0, .y = 1 }));
+            block(grid_pos.add(.{ .x = 0, .y = 2 }));
+            block(grid_pos.add(.{ .x = 1, .y = 2 }));
         },
     }
 }
