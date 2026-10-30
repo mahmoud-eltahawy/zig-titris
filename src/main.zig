@@ -5,9 +5,10 @@ const zizris = @import("zizris");
 const rl = @import("raylib");
 
 const WINDOW_WIDTH = 400;
-const WINDOW_HEIGHT = 800;
-const SINGLE_BOX_SIZE = 20;
+const WINDOW_HEIGHT = WINDOW_WIDTH * 2;
+const SINGLE_BOX_SIZE = WINDOW_WIDTH / 20;
 const BLOCK_SIZE = SINGLE_BOX_SIZE * 2;
+const LINES_THICKNESS = 3;
 
 const State = struct {
     user_closed_the_window: bool = false,
@@ -40,34 +41,36 @@ fn draw(_: *State) void {
     rl.drawText("hello world", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 26, .white);
 
     draw_coordientants();
-    draw_tetris_block(.{ .x = WINDOW_WIDTH / 2, .y = WINDOW_HEIGHT / 2 });
+    draw_tetris_block(.{ .x = 1, .y = 1 });
+    draw_tetris_block(.{ .x = 3, .y = 3 });
+    draw_tetris_block(.{ .x = 5, .y = 5 });
 }
 
-fn draw_tetris_block(pos: rl.Vector2) void {
+fn draw_tetris_block(grid_pos: rl.Vector2) void {
+    const pos = grid_pos.scale(SINGLE_BOX_SIZE);
     const HBS = BLOCK_SIZE / 2;
-    const thickness = 3;
     const cx = pos.x - HBS;
     const cy = pos.y - HBS;
     const x: i32 = @trunc(cx);
     const y: i32 = @trunc(cy);
+
     const top_left: rl.Vector2 = .{ .x = cx, .y = cy };
     const top_right: rl.Vector2 = .{ .x = cx + BLOCK_SIZE, .y = cy };
     const bottom_right: rl.Vector2 = .{ .x = cx + BLOCK_SIZE, .y = cy + BLOCK_SIZE };
     const bottom_left: rl.Vector2 = .{ .x = cx, .y = cy + BLOCK_SIZE };
 
     rl.drawRectangle(x, y, BLOCK_SIZE, BLOCK_SIZE, .white);
+    const rect = rl.Rectangle.init(cx, cy, BLOCK_SIZE, BLOCK_SIZE);
+    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
 
-    rl.drawLineEx(top_left, top_right, thickness, .red);
-    rl.drawLineEx(top_right, bottom_right, thickness, .red);
-    rl.drawLineEx(bottom_right, bottom_left, thickness, .red);
-    rl.drawLineEx(bottom_left, top_left, thickness, .red);
+    const corners = [5]rl.Vector2{ top_left, top_right, bottom_right, bottom_left, top_left };
 
-    const top_center = top_left.add(top_right).scale(0.5);
-    const bottom_center = bottom_left.add(bottom_right).scale(0.5);
-    const left_center = top_left.add(bottom_left).scale(0.5);
-    const right_center = top_right.add(bottom_right).scale(0.5);
-    rl.drawLineEx(top_center, bottom_center, thickness, .red);
-    rl.drawLineEx(left_center, right_center, thickness, .red);
+    var centers: [4]rl.Vector2 = @splat(rl.Vector2.zero());
+    for (0..corners.len - 1) |i| {
+        centers[i] = corners[i].add(corners[i + 1]).scale(0.5);
+    }
+    rl.drawLineEx(centers[0], centers[2], LINES_THICKNESS, .red);
+    rl.drawLineEx(centers[1], centers[3], LINES_THICKNESS, .red);
 }
 
 fn draw_coordientants() void {
