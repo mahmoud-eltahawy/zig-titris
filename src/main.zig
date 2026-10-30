@@ -55,6 +55,9 @@ fn draw(_: *State) void {
 
     draw_shape(.{ .x = 14, .y = 14 }, .L);
     draw_shape(.{ .x = 16, .y = 17 }, .L);
+
+    draw_shape(.{ .x = 14, .y = 20 }, .J);
+    draw_shape(.{ .x = 12, .y = 23 }, .J);
 }
 
 const Block = enum {
@@ -62,6 +65,7 @@ const Block = enum {
     HI,
     VI,
     L,
+    J,
 };
 
 fn block(grid_pos: rl.Vector2) void {
@@ -72,27 +76,36 @@ fn block(grid_pos: rl.Vector2) void {
 }
 
 fn draw_shape(grid_pos: rl.Vector2, shape: Block) void {
-    block(grid_pos);
     switch (shape) {
         .O => {
+            block(grid_pos);
             block(grid_pos.add(.{ .x = 1, .y = 0 }));
             block(grid_pos.add(.{ .x = 0, .y = 1 }));
             block(grid_pos.add(.{ .x = 1, .y = 1 }));
         },
         .HI => {
+            block(grid_pos);
             block(grid_pos.add(.{ .x = 1, .y = 0 }));
             block(grid_pos.add(.{ .x = 2, .y = 0 }));
             block(grid_pos.add(.{ .x = 3, .y = 0 }));
         },
         .VI => {
+            block(grid_pos);
             block(grid_pos.add(.{ .x = 0, .y = 1 }));
             block(grid_pos.add(.{ .x = 0, .y = 2 }));
             block(grid_pos.add(.{ .x = 0, .y = 3 }));
         },
         .L => {
+            block(grid_pos);
             block(grid_pos.add(.{ .x = 0, .y = 1 }));
             block(grid_pos.add(.{ .x = 0, .y = 2 }));
             block(grid_pos.add(.{ .x = 1, .y = 2 }));
+        },
+        .J => {
+            block(grid_pos.add(.{ .x = 1, .y = 0 }));
+            block(grid_pos.add(.{ .x = 1, .y = 1 }));
+            block(grid_pos.add(.{ .x = 1, .y = 2 }));
+            block(grid_pos.add(.{ .x = 0, .y = 2 }));
         },
     }
 }
