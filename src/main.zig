@@ -41,27 +41,29 @@ fn draw(_: *State) void {
     rl.drawText("hello world", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 26, .white);
 
     draw_coordientants();
-    draw_tetris_block(.{ .x = 1, .y = 1 });
-    draw_tetris_block(.{ .x = 3, .y = 3 });
-    draw_tetris_block(.{ .x = 5, .y = 5 });
+    o_block(.{ .x = 0, .y = 0 });
+    o_block(.{ .x = 2, .y = 2 });
+    o_block(.{ .x = 4, .y = 4 });
+
+    horizontal_i_block(.{ .x = 6, .y = 6 });
+    horizontal_i_block(.{ .x = 10, .y = 7 });
 }
 
-fn draw_tetris_block(grid_pos: rl.Vector2) void {
-    const pos = grid_pos.scale(SINGLE_BOX_SIZE);
-    const HBS = BLOCK_SIZE / 2;
-    const cx = pos.x - HBS;
-    const cy = pos.y - HBS;
+fn o_block(grid_pos: rl.Vector2) void {
+    const pos = grid_pos.add(.{ .x = 1, .y = 1 }).scale(SINGLE_BOX_SIZE);
+    const cx = pos.x - SINGLE_BOX_SIZE;
+    const cy = pos.y - SINGLE_BOX_SIZE;
     const x: i32 = @trunc(cx);
     const y: i32 = @trunc(cy);
+
+    rl.drawRectangle(x, y, BLOCK_SIZE, BLOCK_SIZE, .white);
+    const rect = rl.Rectangle.init(cx, cy, BLOCK_SIZE, BLOCK_SIZE);
+    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
 
     const top_left: rl.Vector2 = .{ .x = cx, .y = cy };
     const top_right: rl.Vector2 = .{ .x = cx + BLOCK_SIZE, .y = cy };
     const bottom_right: rl.Vector2 = .{ .x = cx + BLOCK_SIZE, .y = cy + BLOCK_SIZE };
     const bottom_left: rl.Vector2 = .{ .x = cx, .y = cy + BLOCK_SIZE };
-
-    rl.drawRectangle(x, y, BLOCK_SIZE, BLOCK_SIZE, .white);
-    const rect = rl.Rectangle.init(cx, cy, BLOCK_SIZE, BLOCK_SIZE);
-    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
 
     const corners = [5]rl.Vector2{ top_left, top_right, bottom_right, bottom_left, top_left };
 
@@ -71,6 +73,35 @@ fn draw_tetris_block(grid_pos: rl.Vector2) void {
     }
     rl.drawLineEx(centers[0], centers[2], LINES_THICKNESS, .red);
     rl.drawLineEx(centers[1], centers[3], LINES_THICKNESS, .red);
+}
+fn horizontal_i_block(grid_pos: rl.Vector2) void {
+    const pos = grid_pos.add(.{ .x = 1, .y = 1 }).scale(SINGLE_BOX_SIZE);
+    const cx = pos.x - SINGLE_BOX_SIZE;
+    const cy = pos.y - SINGLE_BOX_SIZE;
+    const x: i32 = @trunc(cx);
+    const y: i32 = @trunc(cy);
+
+    rl.drawRectangle(x, y, BLOCK_SIZE * 2, SINGLE_BOX_SIZE, .white);
+    const rect = rl.Rectangle.init(cx, cy, BLOCK_SIZE * 2, SINGLE_BOX_SIZE);
+    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
+
+    const top_left: rl.Vector2 = .{ .x = cx, .y = cy };
+    const top_right: rl.Vector2 = .{ .x = cx + SINGLE_BOX_SIZE * 4, .y = cy };
+    const bottom_right: rl.Vector2 = .{ .x = cx + SINGLE_BOX_SIZE * 4, .y = cy + SINGLE_BOX_SIZE };
+    const bottom_left: rl.Vector2 = .{ .x = cx, .y = cy + SINGLE_BOX_SIZE };
+
+    const top_center = top_left.add(top_right).scale(0.5);
+    const bottom_center = bottom_left.add(bottom_right).scale(0.5);
+
+    const top_left_center = top_left.add(top_center).scale(0.5);
+    const bottom_left_center = bottom_left.add(bottom_center).scale(0.5);
+
+    const top_right_center = top_right.add(top_center).scale(0.5);
+    const bottom_right_center = bottom_right.add(bottom_center).scale(0.5);
+
+    rl.drawLineEx(top_center, bottom_center, LINES_THICKNESS, .red);
+    rl.drawLineEx(top_left_center, bottom_left_center, LINES_THICKNESS, .red);
+    rl.drawLineEx(top_right_center, bottom_right_center, LINES_THICKNESS, .red);
 }
 
 fn draw_coordientants() void {
