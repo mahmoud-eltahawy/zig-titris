@@ -143,7 +143,7 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn handle_events(state: *State) void {
-    if (rl.isKeyDown(.left_control) and rl.isKeyPressed(.q)) {
+    if (rl.isKeyDown(.left_control) and rl.isKeyPressed(.w)) {
         state.user_closed_the_window = true;
     }
     if (rl.isKeyPressed(.left)) {
@@ -162,6 +162,10 @@ fn draw(state: *State, allocator: std.mem.Allocator) !void {
     }
 
     draw_shape(state.moving_tetris.position, state.moving_tetris.tetrominoes);
+    for (state.static_tetris.items) |x| {
+        draw_shape(x.position, x.tetrominoes);
+    }
+
     if (state.moving_tetris.position.y == HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height()) {
         try state.static_tetris.append(allocator, state.moving_tetris);
         state.moving_tetris = .{};
