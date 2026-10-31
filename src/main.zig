@@ -59,6 +59,7 @@ const Tetrominoes = union(enum) {
     Z: Orientation,
     L: Direction,
     T: Direction,
+
     fn next(self: *Tetrominoes) void {
         switch (self.*) {
             .I => |orien| {
@@ -144,7 +145,7 @@ const Tetrominoes = union(enum) {
 
 const VecedTetris = struct {
     position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2, -1),
-    tetrominoes: Tetrominoes = .O,
+    tetrominoes: Tetrominoes = .{ .L = .Right },
 };
 
 const State = struct {
@@ -259,11 +260,11 @@ fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
                     block(grid_pos.add(.{ .x = 0, .y = 1 }));
                 },
                 .Right => {
-                    block(grid_pos);
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
+                    block(grid_pos.add(.{ .x = 2, .y = 1 }));
 
-                    block(grid_pos.add(.{ .x = -1, .y = 1 }));
-                    block(grid_pos.add(.{ .x = -2, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
                 },
             }
         },
@@ -271,9 +272,9 @@ fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
             block(grid_pos);
             switch (dir) {
                 .Left => {
+                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 1, .y = 2 }));
                     block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 2 }));
-                    block(grid_pos.add(.{ .x = -1, .y = 1 }));
                 },
                 .Right => {
                     block(grid_pos.add(.{ .x = 0, .y = 1 }));
