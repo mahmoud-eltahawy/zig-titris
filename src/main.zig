@@ -143,8 +143,14 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn handle_events(state: *State) void {
-    if (rl.isKeyDown(.left_control) and rl.isKeyReleased(.q)) {
+    if (rl.isKeyDown(.left_control) and rl.isKeyPressed(.q)) {
         state.user_closed_the_window = true;
+    }
+    if (rl.isKeyPressed(.left)) {
+        state.moving_tetris.position.x -= 1;
+    }
+    if (rl.isKeyPressed(.right)) {
+        state.moving_tetris.position.x += 1;
     }
 }
 
