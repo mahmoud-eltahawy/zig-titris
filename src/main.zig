@@ -58,15 +58,13 @@ fn draw(_: *State) void {
     draw_shape(.{ .x = 10, .y = 17 }, .{ .L = .Left });
     draw_shape(.{ .x = 6, .y = 17 }, .{ .L = .Right });
 
-    draw_shape(.{ .x = 14, .y = 20 }, .{ .J = .Up });
-    draw_shape(.{ .x = 12, .y = 23 }, .{ .J = .Up });
-
     draw_shape(.{ .x = 9, .y = 26 }, .{ .T = .Up });
     draw_shape(.{ .x = 9, .y = 29 }, .{ .T = .Down });
     draw_shape(.{ .x = 6, .y = 25 }, .{ .T = .Right });
     draw_shape(.{ .x = 4, .y = 25 }, .{ .T = .Left });
 
     draw_shape(.{ .x = 6, .y = 29 }, .{ .Z = .Horizontal });
+    draw_shape(.{ .x = 6, .y = 36 }, .{ .Z = .Vertical });
 }
 
 const Orientation = enum {
@@ -81,7 +79,7 @@ const Direction = enum {
     Left,
 };
 
-const Tetrominoes = union(enum) { O, I: Orientation, Z: Orientation, L: Direction, J: Direction, T: Direction };
+const Tetrominoes = union(enum) { O, I: Orientation, Z: Orientation, L: Direction, T: Direction };
 
 fn block(grid_pos: rl.Vector2) void {
     const pos = grid_pos.scale(SINGLE_BOX_SIZE);
@@ -143,13 +141,6 @@ fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
                 },
             }
         },
-        .J => {
-            block(grid_pos.add(.{ .x = 1, .y = 0 }));
-            block(grid_pos.add(.{ .x = 1, .y = 1 }));
-            block(grid_pos.add(.{ .x = 1, .y = 2 }));
-
-            block(grid_pos.add(.{ .x = 0, .y = 2 }));
-        },
         .T => |dir| {
             block(grid_pos);
             switch (dir) {
@@ -175,11 +166,21 @@ fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
                 },
             }
         },
-        .Z => {
-            block(grid_pos);
-            block(grid_pos.add(.{ .x = 1, .y = 0 }));
-            block(grid_pos.add(.{ .x = 1, .y = 1 }));
-            block(grid_pos.add(.{ .x = 2, .y = 1 }));
+        .Z => |orientation| {
+            switch (orientation) {
+                .Vertical => {
+                    block(grid_pos);
+                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 1, .y = 2 }));
+                },
+                .Horizontal => {
+                    block(grid_pos);
+                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
+                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
+                    block(grid_pos.add(.{ .x = 2, .y = 1 }));
+                },
+            }
         },
     }
 }
