@@ -144,7 +144,7 @@ const Tetrominoes = union(enum) {
 };
 
 const VecedTetris = struct {
-    position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2, -1),
+    position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2 - 1, -1),
     tetrominoes: Tetrominoes = .{ .L = .Right },
 };
 
@@ -176,7 +176,8 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn handle_events(state: *State) void {
-    if (rl.isKeyDown(.left_control) and rl.isKeyPressed(.w)) {
+    const ctrl_down = rl.isKeyDown(.left_control) or rl.isKeyDown(.right_control);
+    if (ctrl_down and rl.isKeyPressed(.w)) {
         state.user_closed_the_window = true;
     }
     if (rl.isKeyPressed(.left) and state.moving_tetris.position.x > 0) {
