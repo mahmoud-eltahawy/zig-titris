@@ -90,8 +90,8 @@ const Tetrominoes = union(enum) {
             },
             .I => |orien| {
                 return switch (orien) {
-                    .Vertical => 3,
-                    .Horizontal => 2,
+                    .Vertical => 4,
+                    .Horizontal => 1,
                 };
             },
             .L => |dir| {
@@ -108,10 +108,42 @@ const Tetrominoes = union(enum) {
             },
         }
     }
+
+    fn width(self: Tetrominoes) u8 {
+        switch (self) {
+            .O => {
+                return 2;
+            },
+            .Z => |orien| {
+                return switch (orien) {
+                    .Vertical => 2,
+                    .Horizontal => 3,
+                };
+            },
+            .I => |orien| {
+                return switch (orien) {
+                    .Vertical => 1,
+                    .Horizontal => 4,
+                };
+            },
+            .L => |dir| {
+                return switch (dir) {
+                    .Up, .Down => 2,
+                    .Right, .Left => 3,
+                };
+            },
+            .T => |dir| {
+                return switch (dir) {
+                    .Up, .Down => 2,
+                    .Right, .Left => 3,
+                };
+            },
+        }
+    }
 };
 
 const VecedTetris = struct {
-    position: rl.Vector2 = .init((WINDOW_WIDTH / WIDTH_BOXES_CAPACITY) / 2, -1),
+    position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2, -1),
     tetrominoes: Tetrominoes = .O,
 };
 
@@ -146,10 +178,10 @@ fn handle_events(state: *State) void {
     if (rl.isKeyDown(.left_control) and rl.isKeyPressed(.w)) {
         state.user_closed_the_window = true;
     }
-    if (rl.isKeyPressed(.left)) {
+    if (rl.isKeyPressed(.left) and state.moving_tetris.position.x > 0) {
         state.moving_tetris.position.x -= 1;
     }
-    if (rl.isKeyPressed(.right)) {
+    if (rl.isKeyPressed(.right) and state.moving_tetris.position.x < WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width()) {
         state.moving_tetris.position.x += 1;
     }
 }
