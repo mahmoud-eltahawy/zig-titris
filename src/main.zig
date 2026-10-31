@@ -5,29 +5,140 @@ const Io = std.Io;
 const zizris = @import("zizris");
 const rl = @import("raylib");
 
+const WIDTH_BOXES_CAPACITY = 20;
+const HEIGHT_BOXES_CAPACITY = WIDTH_BOXES_CAPACITY * 2;
 const WINDOW_WIDTH = 400;
 const WINDOW_HEIGHT = WINDOW_WIDTH * 2;
-const SINGLE_BOX_SIZE = WINDOW_WIDTH / 20;
+const SINGLE_BOX_SIZE = WINDOW_WIDTH / WIDTH_BOXES_CAPACITY;
 const BLOCK_SIZE = SINGLE_BOX_SIZE * 2;
 const LINES_THICKNESS = 3;
 
-const State = struct {
-    user_closed_the_window: bool = false,
+const Orientation = enum {
+    Vertical,
+    Horizontal,
+
+    fn next(self: Orientation) Orientation {
+        switch (self) {
+            .Vertical => {
+                return .Horizontal;
+            },
+            .Horizontal => {
+                return .Vertical;
+            },
+        }
+    }
 };
 
-pub fn main(_: std.process.Init) !void {
+const Direction = enum {
+    Up,
+    Down,
+    Right,
+    Left,
+
+    fn next(self: Direction) Direction {
+        switch (self) {
+            .Up => {
+                return .Left;
+            },
+            .Left => {
+                return .Down;
+            },
+            .Down => {
+                return .Right;
+            },
+            .Right => {
+                return .Up;
+            },
+        }
+    }
+};
+
+const Tetrominoes = union(enum) {
+    O,
+    I: Orientation,
+    Z: Orientation,
+    L: Direction,
+    T: Direction,
+    fn next(self: *Tetrominoes) void {
+        switch (self.*) {
+            .I => |orien| {
+                self.* = orien.next();
+            },
+            .Z => |orien| {
+                self.* = orien.next();
+            },
+            .L => |dir| {
+                self.* = dir.next();
+            },
+            .T => |dir| {
+                self.* = dir.next();
+            },
+            .O => {},
+        }
+    }
+
+    fn height(self: Tetrominoes) u8 {
+        switch (self) {
+            .O => {
+                return 2;
+            },
+            .Z => |orien| {
+                return switch (orien) {
+                    .Vertical => 3,
+                    .Horizontal => 2,
+                };
+            },
+            .I => |orien| {
+                return switch (orien) {
+                    .Vertical => 3,
+                    .Horizontal => 2,
+                };
+            },
+            .L => |dir| {
+                return switch (dir) {
+                    .Up, .Down => 3,
+                    .Right, .Left => 2,
+                };
+            },
+            .T => |dir| {
+                return switch (dir) {
+                    .Up, .Down => 3,
+                    .Right, .Left => 2,
+                };
+            },
+        }
+    }
+};
+
+const VecedTetris = struct {
+    position: rl.Vector2 = .init((WINDOW_WIDTH / WIDTH_BOXES_CAPACITY) / 2, -1),
+    tetrominoes: Tetrominoes = .O,
+};
+
+const State = struct {
+    user_closed_the_window: bool = false,
+    time_instant_in_seconds: f64 = 0,
+    moving_tetris: VecedTetris = .{},
+    static_tetris: std.ArrayList(VecedTetris),
+};
+
+pub fn main(init: std.process.Init) !void {
+    const arena = init.arena.allocator();
+
     rl.initWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zizris (a tetris game in zig)");
     defer rl.closeWindow();
 
     rl.setTargetFPS(60);
 
-    var state: State = .{};
+    var state: State = .{ .static_tetris = try .initCapacity(arena, 100) };
 
     while (!rl.windowShouldClose() and !state.user_closed_the_window) {
         handle_events(&state);
+
         rl.beginDrawing();
         defer rl.endDrawing();
-        draw(&state);
+
+        try draw(&state, arena);
     }
 }
 
@@ -37,49 +148,22 @@ fn handle_events(state: *State) void {
     }
 }
 
-fn draw(_: *State) void {
+fn draw(state: *State, allocator: std.mem.Allocator) !void {
     rl.clearBackground(.black);
 
     if (buildin.mode == .debug) {
         draw_coordientants();
     }
 
-    draw_shape(.{ .x = 0, .y = 0 }, .O);
-    draw_shape(.{ .x = 2, .y = 2 }, .O);
-
-    draw_shape(.{ .x = 4, .y = 4 }, .{ .I = .Horizontal });
-    draw_shape(.{ .x = 8, .y = 5 }, .{ .I = .Horizontal });
-
-    draw_shape(.{ .x = 12, .y = 6 }, .{ .I = .Vertical });
-    draw_shape(.{ .x = 13, .y = 10 }, .{ .I = .Vertical });
-
-    draw_shape(.{ .x = 14, .y = 14 }, .{ .L = .Up });
-    draw_shape(.{ .x = 16, .y = 17 }, .{ .L = .Down });
-    draw_shape(.{ .x = 10, .y = 17 }, .{ .L = .Left });
-    draw_shape(.{ .x = 6, .y = 17 }, .{ .L = .Right });
-
-    draw_shape(.{ .x = 9, .y = 26 }, .{ .T = .Up });
-    draw_shape(.{ .x = 9, .y = 29 }, .{ .T = .Down });
-    draw_shape(.{ .x = 6, .y = 25 }, .{ .T = .Right });
-    draw_shape(.{ .x = 4, .y = 25 }, .{ .T = .Left });
-
-    draw_shape(.{ .x = 6, .y = 29 }, .{ .Z = .Horizontal });
-    draw_shape(.{ .x = 6, .y = 36 }, .{ .Z = .Vertical });
+    draw_shape(state.moving_tetris.position, state.moving_tetris.tetrominoes);
+    if (state.moving_tetris.position.y == HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height()) {
+        try state.static_tetris.append(allocator, state.moving_tetris);
+        state.moving_tetris = .{};
+    } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
+        state.moving_tetris.position.y += 1;
+        state.time_instant_in_seconds = rl.getTime();
+    }
 }
-
-const Orientation = enum {
-    Vertical,
-    Horizontal,
-};
-
-const Direction = enum {
-    Up,
-    Down,
-    Right,
-    Left,
-};
-
-const Tetrominoes = union(enum) { O, I: Orientation, Z: Orientation, L: Direction, T: Direction };
 
 fn block(grid_pos: rl.Vector2) void {
     const pos = grid_pos.scale(SINGLE_BOX_SIZE);
