@@ -24,18 +24,16 @@ const State = struct {
     user_closed_the_window: bool = false,
     time_instant_in_seconds: f64 = 0,
     moving_tetris: VecedTetris = .{},
-    static_tetris: std.ArrayList(rl.Vector2),
+    static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]?u0 = @splat(@splat(null)),
 };
 
-pub fn main(init: std.process.Init) !void {
-    const arena = init.arena.allocator();
-
+pub fn main(_: std.process.Init) !void {
     rl.initWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zizris (a tetris game in zig)");
     defer rl.closeWindow();
 
     rl.setTargetFPS(60);
 
-    var state: State = .{ .static_tetris = try .initCapacity(arena, 100) };
+    var state: State = .{};
 
     while (!rl.windowShouldClose() and !state.user_closed_the_window) {
         handle_events(&state);
@@ -43,7 +41,7 @@ pub fn main(init: std.process.Init) !void {
         rl.beginDrawing();
         defer rl.endDrawing();
 
-        try draw(&state, arena);
+        try draw(&state);
     }
 }
 
@@ -67,17 +65,21 @@ fn handle_events(state: *State) void {
     // zig fmt: on
 }
 
-fn draw(state: *State, allocator: std.mem.Allocator) !void {
+fn draw(state: *State) !void {
     rl.clearBackground(.black);
 
     if (buildin.mode == .debug) {
         draw_coordientants();
     }
 
-    draw_shape(state.moving_tetris.position, state.moving_tetris.tetrominoes);
+    draw_moving_tetris(state);
 
-    for (state.static_tetris.items) |x| {
-        block(x);
+    for (state.static_tetris, 0..) |xs, x| {
+        for (xs, 0..) |v, y| {
+            if (v) |_| {
+                block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)));
+            }
+        }
     }
 
     // zig fmt: off
@@ -86,12 +88,20 @@ fn draw(state: *State, allocator: std.mem.Allocator) !void {
             ==
         HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height() - 1
     ) {
-        try state.static_tetris.appendSlice(
-            allocator,
-            &state
-                .moving_tetris
-                .tetrominoes
-                .get_choosed_varient_at(state.moving_tetris.position));
+
+        const choosed = state
+            .moving_tetris
+            .tetrominoes
+            .get_choosed_varient_at(state.moving_tetris.position);            
+        for (choosed) |v| {
+            state.static_tetris[@trunc(v.x)][@trunc(v.y)] = 0;
+        }
+        // try state.static_tetris.appendSlice(
+        //     allocator,
+        //     &state
+        //         .moving_tetris
+        //         .tetrominoes
+        //         .get_choosed_varient_at(state.moving_tetris.position));
         state.moving_tetris = .{};
     } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
         state.moving_tetris.position.y += 1;
@@ -107,7 +117,10 @@ fn block(grid_pos: rl.Vector2) void {
     rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
 }
 
-fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
+fn draw_moving_tetris(state: *const State) void {
+    const grid_pos: rl.Vector2 = state.moving_tetris.position;
+    const shape: Tetrominoes = state.moving_tetris.tetrominoes;
+
     for (shape.get_choosed_varient()) |x| {
         block(x.add(grid_pos));
     }
