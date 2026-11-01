@@ -24,7 +24,7 @@ const State = struct {
     user_closed_the_window: bool = false,
     time_instant_in_seconds: f64 = 0,
     moving_tetris: VecedTetris = .{},
-    static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]?u0 = @splat(@splat(null)),
+    static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]bool = @splat(@splat(false)),
     random: std.Random,
 
     fn random_veced_tetris(self: *const State) VecedTetris {
@@ -93,7 +93,7 @@ fn draw(state: *State) !void {
 
     for (state.static_tetris, 0..) |xs, x| {
         for (xs, 0..) |v, y| {
-            if (v) |_| {
+            if (v) {
                 block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)));
             }
         }
@@ -111,7 +111,7 @@ fn draw(state: *State) !void {
             .tetrominoes
             .get_choosed_varient_at(state.moving_tetris.position);            
         for (choosed) |v| {
-            state.static_tetris[@trunc(v.x)][@trunc(v.y)] = 0;
+            state.static_tetris[@trunc(v.x)][@trunc(v.y)] = true;
         }
         state.moving_tetris = state.random_veced_tetris();
     } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
