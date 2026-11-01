@@ -41,17 +41,16 @@ const State = struct {
 };
 
 pub fn main(_: std.process.Init) !void {
-    rl.initWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zizris (a tetris game in zig)");
-    defer rl.closeWindow();
-
     const random = blk: {
         var prng = std.Random.DefaultPrng.init(7720);
         const random = prng.random();
         break :blk random;
     };
-    rl.setTargetFPS(60);
-
     var state: State = .{ .random = random };
+
+    rl.setTargetFPS(60);
+    rl.initWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zizris (a tetris game in zig)");
+    defer rl.closeWindow();
 
     while (!rl.windowShouldClose() and !state.user_closed_the_window) {
         handle_events(&state);
