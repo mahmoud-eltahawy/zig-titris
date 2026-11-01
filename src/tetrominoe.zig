@@ -1,4 +1,5 @@
 const rl = @import("raylib");
+const std = @import("std");
 
 pub const Tetrominoe = [4]rl.Vector2;
 pub const TetrominoesVarients = [4]Tetrominoe;
@@ -205,7 +206,7 @@ pub const I_Tetrominoe: TetrominoesVarients = .{
     I_Tetrominoe24,
 };
 
-const TetrominoesKind = enum {
+pub const TetrominoesKind = enum {
     O,
     I,
     Z,
@@ -213,9 +214,10 @@ const TetrominoesKind = enum {
     T,
     S,
 };
+
 pub const Tetrominoes = struct {
     kind: TetrominoesKind = .O,
-    varient: u3 = 0,
+    varient: u2 = 0,
 
     fn next(self: *Tetrominoes) void {
         self.varient.* +%= 1;

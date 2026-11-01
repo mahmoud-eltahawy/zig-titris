@@ -25,15 +25,33 @@ const State = struct {
     time_instant_in_seconds: f64 = 0,
     moving_tetris: VecedTetris = .{},
     static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]?u0 = @splat(@splat(null)),
+    random: std.Random,
+
+    fn random_veced_tetris(self: *const State) VecedTetris {
+        const random_x = self.random.int(u5) % WIDTH_BOXES_CAPACITY;
+        const kinds = [6]tetr.TetrominoesKind{ .I, .L, .O, .S, .T, .Z };
+        const random_kind_index = self.random.int(u3) % kinds.len;
+        const random_varient = self.random.int(u2);
+
+        return .{ .position = .init(random_x, -1), .tetrominoes = .{
+            .kind = kinds[random_kind_index],
+            .varient = random_varient,
+        } };
+    }
 };
 
 pub fn main(_: std.process.Init) !void {
     rl.initWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Zizris (a tetris game in zig)");
     defer rl.closeWindow();
 
+    const random = blk: {
+        var prng = std.Random.DefaultPrng.init(7720);
+        const random = prng.random();
+        break :blk random;
+    };
     rl.setTargetFPS(60);
 
-    var state: State = .{};
+    var state: State = .{ .random = random };
 
     while (!rl.windowShouldClose() and !state.user_closed_the_window) {
         handle_events(&state);
@@ -96,13 +114,7 @@ fn draw(state: *State) !void {
         for (choosed) |v| {
             state.static_tetris[@trunc(v.x)][@trunc(v.y)] = 0;
         }
-        // try state.static_tetris.appendSlice(
-        //     allocator,
-        //     &state
-        //         .moving_tetris
-        //         .tetrominoes
-        //         .get_choosed_varient_at(state.moving_tetris.position));
-        state.moving_tetris = .{};
+        state.moving_tetris = state.random_veced_tetris();
     } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
         state.moving_tetris.position.y += 1;
         state.time_instant_in_seconds = rl.getTime();
