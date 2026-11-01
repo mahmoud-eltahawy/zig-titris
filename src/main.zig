@@ -1,10 +1,11 @@
 const std = @import("std");
 const buildin = @import("builtin");
-const Io = std.Io;
 
-const zizris = @import("zizris");
 const rl = @import("raylib");
+const zizris = @import("zizris");
+
 const tetr = @import("tetrominoe.zig");
+const Tetrominoes = tetr.Tetrominoes;
 
 const WIDTH_BOXES_CAPACITY = 20;
 const HEIGHT_BOXES_CAPACITY = WIDTH_BOXES_CAPACITY * 2;
@@ -13,48 +14,6 @@ const WINDOW_HEIGHT = WINDOW_WIDTH * 2;
 const SINGLE_BOX_SIZE = WINDOW_WIDTH / WIDTH_BOXES_CAPACITY;
 const BLOCK_SIZE = SINGLE_BOX_SIZE * 2;
 const LINES_THICKNESS = 3;
-
-const Orientation = enum {
-    Vertical,
-    Horizontal,
-
-    fn next(self: Orientation) Orientation {
-        switch (self) {
-            .Vertical => {
-                return .Horizontal;
-            },
-            .Horizontal => {
-                return .Vertical;
-            },
-        }
-    }
-};
-
-const Direction = enum {
-    Up,
-    Down,
-    Right,
-    Left,
-
-    fn next(self: Direction) Direction {
-        switch (self) {
-            .Up => {
-                return .Left;
-            },
-            .Left => {
-                return .Down;
-            },
-            .Down => {
-                return .Right;
-            },
-            .Right => {
-                return .Up;
-            },
-        }
-    }
-};
-
-const Tetrominoes = tetr.Tetrominoes;
 
 const VecedTetris = struct {
     position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2 - 1, -1),
@@ -96,9 +55,16 @@ fn handle_events(state: *State) void {
     if (rl.isKeyPressed(.left) and state.moving_tetris.position.x > 0) {
         state.moving_tetris.position.x -= 1;
     }
-    if (rl.isKeyPressed(.right) and state.moving_tetris.position.x < WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width() - 1) {
+    // zig fmt: off
+    if (
+        rl.isKeyPressed(.right) and
+        state.moving_tetris.position.x
+            <
+        WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width() - 1
+    ) {
         state.moving_tetris.position.x += 1;
     }
+    // zig fmt: on
 }
 
 fn draw(state: *State, allocator: std.mem.Allocator) !void {
@@ -114,13 +80,24 @@ fn draw(state: *State, allocator: std.mem.Allocator) !void {
         block(x);
     }
 
-    if (state.moving_tetris.position.y == HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height() - 1) {
-        try state.static_tetris.appendSlice(allocator, &state.moving_tetris.tetrominoes.get_choosed_varient_at(state.moving_tetris.position));
+    // zig fmt: off
+    if (
+        state.moving_tetris.position.y
+            ==
+        HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height() - 1
+    ) {
+        try state.static_tetris.appendSlice(
+            allocator,
+            &state
+                .moving_tetris
+                .tetrominoes
+                .get_choosed_varient_at(state.moving_tetris.position));
         state.moving_tetris = .{};
     } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
         state.moving_tetris.position.y += 1;
         state.time_instant_in_seconds = rl.getTime();
     }
+    // zig fmt: on
 }
 
 fn block(grid_pos: rl.Vector2) void {
