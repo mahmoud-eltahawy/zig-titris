@@ -27,6 +27,27 @@ const State = struct {
     static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]bool = @splat(@splat(false)),
     random: std.Random,
 
+    fn tetris_closest_blocks(self: *const State) tetr.FourBlocks {
+        var lowest = self.moving_tetris.tetrominoes
+            .get_lowest_blocks_at(self.moving_tetris.position);
+
+        for (lowest.items[0..lowest.len]) |*v| {
+            const x: usize = @trunc(v.x);
+            const column = &self.static_tetris[x];
+
+            var min: usize = HEIGHT_BOXES_CAPACITY;
+            for (column, 0..) |occupied, i| {
+                if (occupied) {
+                    min = i + 1;
+                    break;
+                }
+            }
+
+            v.y = min;
+        }
+        return lowest;
+    }
+
     fn random_veced_tetris(self: *const State) VecedTetris {
         const random_x = self.random.int(u5) % WIDTH_BOXES_CAPACITY;
         const kinds = [6]tetr.TetrominoesKind{ .I, .L, .O, .S, .T, .Z };
@@ -35,7 +56,7 @@ const State = struct {
 
         return .{ .position = .init(random_x, -1), .tetrominoes = .{
             .kind = kinds[random_kind_index],
-            .varient = random_varient,
+            .varient_index = random_varient,
         } };
     }
 };

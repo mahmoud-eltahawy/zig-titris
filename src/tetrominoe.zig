@@ -215,12 +215,21 @@ pub const TetrominoesKind = enum {
     S,
 };
 
+pub const FourBlocks = struct {
+    items: [4]rl.Vector2 = undefined,
+    len: u8 = 0,
+
+    pub fn slice(self: *const FourBlocks) []const rl.Vector2 {
+        return self.items[0..self.len];
+    }
+};
+
 pub const Tetrominoes = struct {
     kind: TetrominoesKind = .O,
-    varient: u2 = 0,
+    varient_index: u2 = 0,
 
     fn next(self: *Tetrominoes) void {
-        self.varient.* +%= 1;
+        self.varient_index.* +%= 1;
     }
 
     fn get_all_varients(self: *const Tetrominoes) *const TetrominoesVarients {
@@ -234,12 +243,31 @@ pub const Tetrominoes = struct {
         };
     }
     pub fn get_choosed_varient(self: *const Tetrominoes) *const Tetrominoe {
-        return &self.get_all_varients()[self.varient];
+        return &self.get_all_varients()[self.varient_index];
     }
     pub fn get_choosed_varient_at(self: *const Tetrominoes, position: rl.Vector2) Tetrominoe {
         var result: Tetrominoe = @splat(rl.Vector2.zero());
-        for (self.get_all_varients()[self.varient], 0..) |x, i| {
+        for (self.get_all_varients()[self.varient_index], 0..) |x, i| {
             result[i] = x.add(position);
+        }
+        return result;
+    }
+
+    pub fn get_lowest_blocks_at(
+        self: *const Tetrominoes,
+        position: rl.Vector2,
+    ) FourBlocks {
+        var result: FourBlocks = .{};
+        for (self.get_choosed_varient_at(position)) |v1| {
+            for (result.items[0..result.len]) |*v2| {
+                if (v2.x == v1.x) {
+                    if (v1.y > v2.y) v2.* = v1;
+                    break;
+                }
+            } else {
+                result.items[result.len] = v1;
+                result.len += 1;
+            }
         }
         return result;
     }
