@@ -1,0 +1,3 @@
+#!/usr/bin/env nu
+
+zig build -fincremental --error-style minimal_clear --watch
