@@ -4,6 +4,7 @@ const Io = std.Io;
 
 const zizris = @import("zizris");
 const rl = @import("raylib");
+const tetr = @import("tetrominoe.zig");
 
 const WIDTH_BOXES_CAPACITY = 20;
 const HEIGHT_BOXES_CAPACITY = WIDTH_BOXES_CAPACITY * 2;
@@ -53,106 +54,18 @@ const Direction = enum {
     }
 };
 
-const Tetrominoes = union(enum) {
-    O,
-    I: Orientation,
-    Z: Orientation,
-    L: Direction,
-    T: Direction,
-
-    fn next(self: *Tetrominoes) void {
-        switch (self.*) {
-            .I => |orien| {
-                self.* = orien.next();
-            },
-            .Z => |orien| {
-                self.* = orien.next();
-            },
-            .L => |dir| {
-                self.* = dir.next();
-            },
-            .T => |dir| {
-                self.* = dir.next();
-            },
-            .O => {},
-        }
-    }
-
-    fn height(self: Tetrominoes) u8 {
-        switch (self) {
-            .O => {
-                return 2;
-            },
-            .Z => |orien| {
-                return switch (orien) {
-                    .Vertical => 3,
-                    .Horizontal => 2,
-                };
-            },
-            .I => |orien| {
-                return switch (orien) {
-                    .Vertical => 4,
-                    .Horizontal => 1,
-                };
-            },
-            .L => |dir| {
-                return switch (dir) {
-                    .Up, .Down => 3,
-                    .Right, .Left => 2,
-                };
-            },
-            .T => |dir| {
-                return switch (dir) {
-                    .Up, .Down => 3,
-                    .Right, .Left => 2,
-                };
-            },
-        }
-    }
-
-    fn width(self: Tetrominoes) u8 {
-        switch (self) {
-            .O => {
-                return 2;
-            },
-            .Z => |orien| {
-                return switch (orien) {
-                    .Vertical => 2,
-                    .Horizontal => 3,
-                };
-            },
-            .I => |orien| {
-                return switch (orien) {
-                    .Vertical => 1,
-                    .Horizontal => 4,
-                };
-            },
-            .L => |dir| {
-                return switch (dir) {
-                    .Up, .Down => 2,
-                    .Right, .Left => 3,
-                };
-            },
-            .T => |dir| {
-                return switch (dir) {
-                    .Up, .Down => 2,
-                    .Right, .Left => 3,
-                };
-            },
-        }
-    }
-};
+const Tetrominoes = tetr.Tetrominoes;
 
 const VecedTetris = struct {
     position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2 - 1, -1),
-    tetrominoes: Tetrominoes = .{ .L = .Right },
+    tetrominoes: Tetrominoes = .{},
 };
 
 const State = struct {
     user_closed_the_window: bool = false,
     time_instant_in_seconds: f64 = 0,
     moving_tetris: VecedTetris = .{},
-    static_tetris: std.ArrayList(VecedTetris),
+    static_tetris: std.ArrayList(rl.Vector2),
 };
 
 pub fn main(init: std.process.Init) !void {
@@ -183,7 +96,7 @@ fn handle_events(state: *State) void {
     if (rl.isKeyPressed(.left) and state.moving_tetris.position.x > 0) {
         state.moving_tetris.position.x -= 1;
     }
-    if (rl.isKeyPressed(.right) and state.moving_tetris.position.x < WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width()) {
+    if (rl.isKeyPressed(.right) and state.moving_tetris.position.x < WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width() - 1) {
         state.moving_tetris.position.x += 1;
     }
 }
@@ -196,12 +109,13 @@ fn draw(state: *State, allocator: std.mem.Allocator) !void {
     }
 
     draw_shape(state.moving_tetris.position, state.moving_tetris.tetrominoes);
+
     for (state.static_tetris.items) |x| {
-        draw_shape(x.position, x.tetrominoes);
+        block(x);
     }
 
-    if (state.moving_tetris.position.y == HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height()) {
-        try state.static_tetris.append(allocator, state.moving_tetris);
+    if (state.moving_tetris.position.y == HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height() - 1) {
+        try state.static_tetris.appendSlice(allocator, &state.moving_tetris.tetrominoes.get_choosed_varient_at(state.moving_tetris.position));
         state.moving_tetris = .{};
     } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
         state.moving_tetris.position.y += 1;
@@ -217,99 +131,8 @@ fn block(grid_pos: rl.Vector2) void {
 }
 
 fn draw_shape(grid_pos: rl.Vector2, shape: Tetrominoes) void {
-    switch (shape) {
-        .O => {
-            block(grid_pos);
-            block(grid_pos.add(.{ .x = 1, .y = 0 }));
-            block(grid_pos.add(.{ .x = 0, .y = 1 }));
-            block(grid_pos.add(.{ .x = 1, .y = 1 }));
-        },
-        .I => |orientation| {
-            block(grid_pos);
-            switch (orientation) {
-                .Vertical => {
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 2 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 3 }));
-                },
-                .Horizontal => {
-                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 3, .y = 0 }));
-                },
-            }
-        },
-        .L => |dir| {
-            switch (dir) {
-                .Up => {
-                    block(grid_pos);
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 2 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 2 }));
-                },
-                .Down => {
-                    block(grid_pos);
-                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 2 }));
-                },
-                .Left => {
-                    block(grid_pos);
-                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
-
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                },
-                .Right => {
-                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 2, .y = 1 }));
-
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                },
-            }
-        },
-        .T => |dir| {
-            block(grid_pos);
-            switch (dir) {
-                .Left => {
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 2 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                },
-                .Right => {
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 0, .y = 2 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                },
-                .Up => {
-                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 1, .y = -1 }));
-                },
-                .Down => {
-                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 2, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                },
-            }
-        },
-        .Z => |orientation| {
-            switch (orientation) {
-                .Vertical => {
-                    block(grid_pos);
-                    block(grid_pos.add(.{ .x = 0, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 2 }));
-                },
-                .Horizontal => {
-                    block(grid_pos);
-                    block(grid_pos.add(.{ .x = 1, .y = 0 }));
-                    block(grid_pos.add(.{ .x = 1, .y = 1 }));
-                    block(grid_pos.add(.{ .x = 2, .y = 1 }));
-                },
-            }
-        },
+    for (shape.get_choosed_varient()) |x| {
+        block(x.add(grid_pos));
     }
 }
 
