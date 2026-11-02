@@ -27,6 +27,26 @@ const State = struct {
     static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]bool = @splat(@splat(false)),
     random: std.Random,
 
+    fn moving_tetris_reached(self: *State) bool {
+        if (self.moving_tetris.position.y ==
+            HEIGHT_BOXES_CAPACITY - self.moving_tetris.tetrominoes.height() - 1)
+        {
+            return true;
+        }
+
+        for (self.moving_tetris.tetrominoes.get_lowest_blocks_at(self.moving_tetris.position), self.tetris_closest_blocks()) |optinal_v1, optinal_v2| {
+            if (optinal_v1) |v1| {
+                if (optinal_v2) |v2| {
+                    if (@abs(v1.y - v2.y) == 1) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     fn tetris_closest_blocks(self: *const State) [4]?rl.Vector2 {
         var lowest = self.moving_tetris.tetrominoes
             .get_lowest_blocks_at(self.moving_tetris.position);
@@ -111,27 +131,21 @@ fn draw(state: *State) !void {
     draw_moving_tetris(state);
     draw_static_tetris(state);
 
-    // zig fmt: off
-    if (
-        state.moving_tetris.position.y
-            ==
-        HEIGHT_BOXES_CAPACITY - state.moving_tetris.tetrominoes.height() - 1
-    ) {
-
+    if (state.moving_tetris_reached()) {
         const choosed = state
             .moving_tetris
             .tetrominoes
-            .get_choosed_varient_at(state.moving_tetris.position);            
+            .get_choosed_varient_at(state.moving_tetris.position);
         for (choosed) |v| {
             state.static_tetris[@trunc(v.x)][@trunc(v.y)] = true;
         }
-        
+
         state.moving_tetris = state.random_veced_tetris();
-    } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
+    }
+    if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
         state.moving_tetris.position.y += 1;
         state.time_instant_in_seconds = rl.getTime();
     }
-    // zig fmt: on
 }
 
 fn draw_block(grid_pos: rl.Vector2, color: rl.Color) void {
