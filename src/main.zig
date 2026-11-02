@@ -35,15 +35,12 @@ const State = struct {
             const x: usize = @trunc(v.x);
             const column = &self.static_tetris[x];
 
-            var min: usize = HEIGHT_BOXES_CAPACITY;
             for (column, 0..) |occupied, i| {
                 if (occupied) {
-                    min = i + 1;
+                    v.y = @floatFromInt(i);
                     break;
                 }
             }
-
-            v.y = min;
         }
         return lowest;
     }
@@ -115,8 +112,14 @@ fn draw(state: *State) !void {
     for (state.static_tetris, 0..) |xs, x| {
         for (xs, 0..) |v, y| {
             if (v) {
-                block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)));
+                block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)), .red);
             }
+        }
+    }
+
+    if (buildin.mode == .debug) {
+        for (state.tetris_closest_blocks().slice()) |b| {
+            block(b, .blue);
         }
     }
 
@@ -134,6 +137,7 @@ fn draw(state: *State) !void {
         for (choosed) |v| {
             state.static_tetris[@trunc(v.x)][@trunc(v.y)] = true;
         }
+        
         state.moving_tetris = state.random_veced_tetris();
     } else if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
         state.moving_tetris.position.y += 1;
@@ -142,11 +146,11 @@ fn draw(state: *State) !void {
     // zig fmt: on
 }
 
-fn block(grid_pos: rl.Vector2) void {
+fn block(grid_pos: rl.Vector2, color: rl.Color) void {
     const pos = grid_pos.scale(SINGLE_BOX_SIZE);
     rl.drawRectangleV(pos, .{ .x = SINGLE_BOX_SIZE, .y = SINGLE_BOX_SIZE }, .white);
     const rect = rl.Rectangle.init(pos.x, pos.y, SINGLE_BOX_SIZE, SINGLE_BOX_SIZE);
-    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, .red);
+    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, color);
 }
 
 fn draw_moving_tetris(state: *const State) void {
@@ -154,7 +158,13 @@ fn draw_moving_tetris(state: *const State) void {
     const shape: Tetrominoes = state.moving_tetris.tetrominoes;
 
     for (shape.get_choosed_varient()) |x| {
-        block(x.add(grid_pos));
+        block(x.add(grid_pos), .red);
+    }
+    if (buildin.mode == .debug) {
+        const lowest = state.moving_tetris.tetrominoes.get_lowest_blocks_at(state.moving_tetris.position);
+        for (lowest.slice()) |b| {
+            block(b, .blue);
+        }
     }
 }
 
