@@ -108,20 +108,7 @@ fn draw(state: *State) !void {
     }
 
     draw_moving_tetris(state);
-
-    for (state.static_tetris, 0..) |xs, x| {
-        for (xs, 0..) |v, y| {
-            if (v) {
-                block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)), .red);
-            }
-        }
-    }
-
-    if (buildin.mode == .debug) {
-        for (state.tetris_closest_blocks().slice()) |b| {
-            block(b, .blue);
-        }
-    }
+    draw_static_tetris(state);
 
     // zig fmt: off
     if (
@@ -146,7 +133,7 @@ fn draw(state: *State) !void {
     // zig fmt: on
 }
 
-fn block(grid_pos: rl.Vector2, color: rl.Color) void {
+fn draw_block(grid_pos: rl.Vector2, color: rl.Color) void {
     const pos = grid_pos.scale(SINGLE_BOX_SIZE);
     rl.drawRectangleV(pos, .{ .x = SINGLE_BOX_SIZE, .y = SINGLE_BOX_SIZE }, .white);
     const rect = rl.Rectangle.init(pos.x, pos.y, SINGLE_BOX_SIZE, SINGLE_BOX_SIZE);
@@ -158,12 +145,28 @@ fn draw_moving_tetris(state: *const State) void {
     const shape: Tetrominoes = state.moving_tetris.tetrominoes;
 
     for (shape.get_choosed_varient()) |x| {
-        block(x.add(grid_pos), .red);
+        draw_block(x.add(grid_pos), .red);
     }
     if (buildin.mode == .debug) {
         const lowest = state.moving_tetris.tetrominoes.get_lowest_blocks_at(state.moving_tetris.position);
         for (lowest.slice()) |b| {
-            block(b, .blue);
+            draw_block(b, .blue);
+        }
+    }
+}
+
+fn draw_static_tetris(state: *const State) void {
+    for (state.static_tetris, 0..) |xs, x| {
+        for (xs, 0..) |v, y| {
+            if (v) {
+                draw_block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)), .red);
+            }
+        }
+    }
+
+    if (buildin.mode == .debug) {
+        for (state.tetris_closest_blocks().slice()) |b| {
+            draw_block(b, .blue);
         }
     }
 }
