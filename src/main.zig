@@ -27,18 +27,19 @@ const State = struct {
     static_tetris: [WIDTH_BOXES_CAPACITY][HEIGHT_BOXES_CAPACITY]bool = @splat(@splat(false)),
     random: std.Random,
 
-    fn tetris_closest_blocks(self: *const State) tetr.FourBlocks {
+    fn tetris_closest_blocks(self: *const State) [4]?rl.Vector2 {
         var lowest = self.moving_tetris.tetrominoes
             .get_lowest_blocks_at(self.moving_tetris.position);
 
-        for (lowest.items[0..lowest.len]) |*v| {
-            const x: usize = @trunc(v.x);
-            const column = &self.static_tetris[x];
+        for (lowest, 0..) |optinal_v, i| {
+            if (optinal_v) |v| {
+                const column = &self.static_tetris[@trunc(v.x)];
 
-            for (column, 0..) |occupied, i| {
-                if (occupied) {
-                    v.y = @floatFromInt(i);
-                    break;
+                for (column, 0..) |occupied, j| {
+                    if (occupied) {
+                        lowest[i] = rl.Vector2.init(v.x, @floatFromInt(j));
+                        break;
+                    }
                 }
             }
         }
@@ -149,8 +150,10 @@ fn draw_moving_tetris(state: *const State) void {
     }
     if (buildin.mode == .debug) {
         const lowest = state.moving_tetris.tetrominoes.get_lowest_blocks_at(state.moving_tetris.position);
-        for (lowest.slice()) |b| {
-            draw_block(b, .blue);
+        for (lowest) |optinal_b| {
+            if (optinal_b) |b| {
+                draw_block(b, .blue);
+            }
         }
     }
 }
@@ -165,8 +168,10 @@ fn draw_static_tetris(state: *const State) void {
     }
 
     if (buildin.mode == .debug) {
-        for (state.tetris_closest_blocks().slice()) |b| {
-            draw_block(b, .blue);
+        for (state.tetris_closest_blocks()) |optinal_b| {
+            if (optinal_b) |b| {
+                draw_block(b, .blue);
+            }
         }
     }
 }

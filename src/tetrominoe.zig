@@ -215,14 +215,13 @@ pub const TetrominoesKind = enum {
     S,
 };
 
-pub const FourBlocks = struct {
-    items: [4]rl.Vector2 = undefined,
-    len: u8 = 0,
-
-    pub fn slice(self: *const FourBlocks) []const rl.Vector2 {
-        return self.items[0..self.len];
+fn array_max(comptime T: type, array: [4]T) T {
+    var result: T = 0;
+    for (array) |x| {
+        result = @max(x, result);
     }
-};
+    return result;
+}
 
 pub const Tetrominoes = struct {
     kind: TetrominoesKind = .O,
@@ -247,7 +246,7 @@ pub const Tetrominoes = struct {
     }
     pub fn get_choosed_varient_at(self: *const Tetrominoes, position: rl.Vector2) Tetrominoe {
         var result: Tetrominoe = @splat(rl.Vector2.zero());
-        for (self.get_all_varients()[self.varient_index], 0..) |x, i| {
+        for (self.get_choosed_varient(), 0..) |x, i| {
             result[i] = x.add(position);
         }
         return result;
@@ -256,17 +255,24 @@ pub const Tetrominoes = struct {
     pub fn get_lowest_blocks_at(
         self: *const Tetrominoes,
         position: rl.Vector2,
-    ) FourBlocks {
-        var result: FourBlocks = .{};
-        for (self.get_choosed_varient_at(position)) |v1| {
-            for (result.items[0..result.len]) |*v2| {
-                if (v2.x == v1.x) {
-                    if (v1.y > v2.y) v2.* = v1;
-                    break;
-                }
-            } else {
-                result.items[result.len] = v1;
-                result.len += 1;
+    ) [4]?rl.Vector2 {
+        var grid: [4]struct { touched: bool, column: [4]f32 } = @splat(.{ .touched = false, .column = @splat(0) });
+        var grid_y_tracker: [4]usize = @splat(0);
+        for (self.get_choosed_varient()) |varient_block| {
+            const i: usize = @trunc(varient_block.x);
+            grid[i].column[grid_y_tracker[i]] = varient_block.y;
+            grid[i].touched = true;
+            grid_y_tracker[i] += 1;
+        }
+
+        var result: [4]?rl.Vector2 = @splat(null);
+        for (grid, 0..) |val, i| {
+            const max = array_max(f32, val.column);
+            if (val.touched) {
+                result[i] = rl.Vector2.init(
+                    @floatFromInt(i),
+                    max,
+                ).add(position);
             }
         }
         return result;
