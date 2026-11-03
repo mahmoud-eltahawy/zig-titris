@@ -15,8 +15,13 @@ const SINGLE_BOX_SIZE = WINDOW_WIDTH / WIDTH_BOXES_CAPACITY;
 const BLOCK_SIZE = SINGLE_BOX_SIZE * 2;
 const LINES_THICKNESS = 3;
 
+pub const X = 0;
+pub const Y = 1;
+
+pub const Vector = @Vector(2, f32);
+
 const VecedTetris = struct {
-    position: rl.Vector2 = .init(WIDTH_BOXES_CAPACITY / 2 - 1, -1),
+    position: Vector = .{ WIDTH_BOXES_CAPACITY / 2 - 1, -1 },
     tetrominoes: Tetrominoes = .{},
 };
 
@@ -29,7 +34,7 @@ const State = struct {
 
     fn moving_tetris_reached(self: *State) bool {
         //got to the bottom
-        if (self.moving_tetris.position.y ==
+        if (self.moving_tetris.position[Y] ==
             HEIGHT_BOXES_CAPACITY - self.moving_tetris.tetrominoes.height() - 1)
         {
             return true;
@@ -39,7 +44,7 @@ const State = struct {
         for (self.moving_tetris.tetrominoes.get_lowest_blocks_at(self.moving_tetris.position), self.tetris_closest_blocks()) |optinal_v1, optinal_v2| {
             if (optinal_v1) |v1| {
                 if (optinal_v2) |v2| {
-                    if (@abs(v1.y - v2.y) == 1) {
+                    if (@abs(v1[Y] - v2[Y]) == 1) {
                         return true;
                     }
                 }
@@ -49,18 +54,18 @@ const State = struct {
         return false;
     }
 
-    fn tetris_closest_blocks(self: *const State) [4]?rl.Vector2 {
+    fn tetris_closest_blocks(self: *const State) [4]?Vector {
         var lowest = self.moving_tetris.tetrominoes
             .get_lowest_blocks_at(self.moving_tetris.position);
 
         for (lowest, 0..) |optinal_v, i| {
             if (optinal_v) |v| {
-                const column = &self.static_tetris[@trunc(v.x)];
+                const column = &self.static_tetris[@trunc(v[X])];
 
                 for (column, 0..) |occupied, j| {
                     const j_f32: f32 = @floatFromInt(j);
-                    if (occupied and j_f32 > v.y) {
-                        lowest[i] = rl.Vector2.init(v.x, j_f32);
+                    if (occupied and j_f32 > v[Y]) {
+                        lowest[i] = .{ v[X], j_f32 };
                         break;
                     }
                 }
@@ -80,7 +85,7 @@ const State = struct {
         const width: usize = @intFromFloat(tetrominoes.width());
         const random_x = self.random.intRangeAtMost(usize, 0, WIDTH_BOXES_CAPACITY - width - 1);
 
-        return .{ .position = .init(@floatFromInt(random_x), -1), .tetrominoes = tetrominoes };
+        return .{ .position = .{ @floatFromInt(random_x), -1 }, .tetrominoes = tetrominoes };
     }
 
     fn update(self: *State) void {
@@ -90,12 +95,12 @@ const State = struct {
                 .tetrominoes
                 .get_choosed_varient_at(self.moving_tetris.position);
             for (choosed) |v| {
-                self.static_tetris[@trunc(v.x)][@trunc(v.y)] = true;
+                self.static_tetris[@trunc(v[X])][@trunc(v[Y])] = true;
             }
 
             self.moving_tetris = self.random_veced_tetris();
         } else if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
-            self.moving_tetris.position.y += 1;
+            self.moving_tetris.position[Y] += 1;
             self.time_instant_in_seconds = rl.getTime();
         }
     }
@@ -129,14 +134,14 @@ fn handle_events(state: *State) void {
     if (ctrl_down and (rl.isKeyPressed(.w) or rl.isKeyPressed(.c))) {
         state.user_closed_the_window = true;
     }
-    if (rl.isKeyPressed(.left) and state.moving_tetris.position.x > 0) {
-        state.moving_tetris.position.x -= 1;
+    if (rl.isKeyPressed(.left) and state.moving_tetris.position[X] > 0) {
+        state.moving_tetris.position[X] -= 1;
     }
     if (rl.isKeyPressed(.right) and
-        state.moving_tetris.position.x <
+        state.moving_tetris.position[X] <
             WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width() - 1)
     {
-        state.moving_tetris.position.x += 1;
+        state.moving_tetris.position[X] += 1;
     }
     if (rl.isKeyPressed(.space)) {
         state.moving_tetris.tetrominoes.varient_index +%= 1;
@@ -157,19 +162,20 @@ fn draw(state: *const State) !void {
     draw_static_tetris(state);
 }
 
-fn draw_block(grid_pos: rl.Vector2, color: rl.Color) void {
-    const pos = grid_pos.scale(SINGLE_BOX_SIZE);
-    rl.drawRectangleV(pos, .{ .x = SINGLE_BOX_SIZE, .y = SINGLE_BOX_SIZE }, .white);
-    const rect = rl.Rectangle.init(pos.x, pos.y, SINGLE_BOX_SIZE, SINGLE_BOX_SIZE);
+fn draw_block(grid_pos: Vector, color: rl.Color) void {
+    const scaler: @Vector(2, f32) = @splat(SINGLE_BOX_SIZE);
+    const pos = scaler * grid_pos;
+    rl.drawRectangleV(.initVec(pos), .initVec(@splat(SINGLE_BOX_SIZE)), .white);
+    const rect = rl.Rectangle.init(pos[X], pos[Y], SINGLE_BOX_SIZE, SINGLE_BOX_SIZE);
     rl.drawRectangleLinesEx(rect, LINES_THICKNESS, color);
 }
 
 fn draw_moving_tetris(state: *const State) void {
-    const grid_pos: rl.Vector2 = state.moving_tetris.position;
+    const grid_pos: Vector = state.moving_tetris.position;
     const shape: Tetrominoes = state.moving_tetris.tetrominoes;
 
     for (shape.get_choosed_varient()) |x| {
-        draw_block(x.add(grid_pos), .red);
+        draw_block(x + grid_pos, .red);
     }
     if (buildin.mode == .debug) {
         const lowest = state.moving_tetris.tetrominoes.get_lowest_blocks_at(state.moving_tetris.position);
@@ -185,7 +191,7 @@ fn draw_static_tetris(state: *const State) void {
     for (state.static_tetris, 0..) |xs, x| {
         for (xs, 0..) |v, y| {
             if (v) {
-                draw_block(rl.Vector2.init(@floatFromInt(x), @floatFromInt(y)), .red);
+                draw_block(.{ @floatFromInt(x), @floatFromInt(y) }, .red);
             }
         }
     }

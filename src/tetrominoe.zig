@@ -1,41 +1,42 @@
 const rl = @import("raylib");
 const std = @import("std");
+const ziz = @import("main.zig");
 
-pub const Tetrominoe = [4]rl.Vector2;
+pub const Tetrominoe = [4]ziz.Vector;
 pub const TetrominoesVarients = [4]Tetrominoe;
 /// X
 /// X
 /// X X
 const L_Tetrominoe1: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(0, 2),
-    rl.Vector2.init(1, 2),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 0, 2 },
+    .{ 1, 2 },
 };
 /// X X X
 /// X
 const L_Tetrominoe2: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(2, 0),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 1, 0 },
+    .{ 2, 0 },
 };
 /// X X
 ///   X
 ///   X
 const L_Tetrominoe3: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(1, 2),
+    .{ 0, 0 },
+    .{ 1, 0 },
+    .{ 1, 1 },
+    .{ 1, 2 },
 };
 ///    X
 ///X X X
 const L_Tetrominoe4: Tetrominoe = .{
-    rl.Vector2.init(2, 0),
-    rl.Vector2.init(2, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(0, 1),
+    .{ 2, 0 },
+    .{ 2, 1 },
+    .{ 1, 1 },
+    .{ 0, 1 },
 };
 pub const L_Tetrominoe: TetrominoesVarients = .{
     L_Tetrominoe1,
@@ -48,35 +49,35 @@ pub const L_Tetrominoe: TetrominoesVarients = .{
 /// . X
 /// X X
 const J_Tetrominoe1: Tetrominoe = .{
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(0, 2),
-    rl.Vector2.init(1, 2),
+    .{ 1, 0 },
+    .{ 1, 1 },
+    .{ 0, 2 },
+    .{ 1, 2 },
 };
 /// X . .
 /// X X X
 const J_Tetrominoe2: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(2, 1),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
+    .{ 2, 1 },
 };
 /// X X
 /// X .
 /// X .
 const J_Tetrominoe3: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(0, 2),
-    rl.Vector2.init(1, 0),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 0, 2 },
+    .{ 1, 0 },
 };
 /// X X X
 /// . . X
 const J_Tetrominoe4: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(2, 0),
-    rl.Vector2.init(2, 1),
+    .{ 0, 0 },
+    .{ 1, 0 },
+    .{ 2, 0 },
+    .{ 2, 1 },
 };
 pub const J_Tetrominoe: TetrominoesVarients = .{
     J_Tetrominoe1,
@@ -88,36 +89,36 @@ pub const J_Tetrominoe: TetrominoesVarients = .{
 /// X X X
 /// . X .
 const T_Tetrominoe1: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(2, 0),
-    rl.Vector2.init(1, 1),
+    .{ 0, 0 },
+    .{ 1, 0 },
+    .{ 2, 0 },
+    .{ 1, 1 },
 };
 /// . X
 /// X X
 /// . X
 const T_Tetrominoe2: Tetrominoe = .{
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(1, 2),
+    .{ 1, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
+    .{ 1, 2 },
 };
 /// . X .
 /// X X X
 const T_Tetrominoe3: Tetrominoe = .{
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(2, 1),
+    .{ 1, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
+    .{ 2, 1 },
 };
 /// X .
 /// X X
 /// X .
 const T_Tetrominoe4: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(0, 2),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
+    .{ 0, 2 },
 };
 pub const T_Tetrominoe: TetrominoesVarients = .{
     T_Tetrominoe1,
@@ -129,19 +130,19 @@ pub const T_Tetrominoe: TetrominoesVarients = .{
 /// X X .
 /// . X X
 const Z_Tetrominoe13: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(2, 1),
+    .{ 0, 0 },
+    .{ 1, 0 },
+    .{ 1, 1 },
+    .{ 2, 1 },
 };
 /// . X
 /// X X
 /// X .
 const Z_Tetrominoe24: Tetrominoe = .{
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(0, 2),
+    .{ 1, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
+    .{ 0, 2 },
 };
 pub const Z_Tetrominoe: TetrominoesVarients = .{
     Z_Tetrominoe13,
@@ -153,19 +154,19 @@ pub const Z_Tetrominoe: TetrominoesVarients = .{
 /// . X X
 /// X X .
 const S_Tetrominoe13: Tetrominoe = .{
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(2, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
+    .{ 1, 0 },
+    .{ 2, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
 };
 /// X .
 /// X X
 /// . X
 const S_Tetrominoe24: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 1),
-    rl.Vector2.init(1, 2),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 1, 1 },
+    .{ 1, 2 },
 };
 pub const S_Tetrominoe: TetrominoesVarients = .{
     S_Tetrominoe13,
@@ -176,10 +177,10 @@ pub const S_Tetrominoe: TetrominoesVarients = .{
 /// X X
 /// X X
 const O_Tetrominoe1234: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(1, 1),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 1, 0 },
+    .{ 1, 1 },
 };
 pub const O_Tetrominoe: TetrominoesVarients = .{
     O_Tetrominoe1234,
@@ -188,16 +189,16 @@ pub const O_Tetrominoe: TetrominoesVarients = .{
     O_Tetrominoe1234,
 };
 const I_Tetrominoe13: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(0, 1),
-    rl.Vector2.init(0, 2),
-    rl.Vector2.init(0, 3),
+    .{ 0, 0 },
+    .{ 0, 1 },
+    .{ 0, 2 },
+    .{ 0, 3 },
 };
 const I_Tetrominoe24: Tetrominoe = .{
-    rl.Vector2.init(0, 0),
-    rl.Vector2.init(1, 0),
-    rl.Vector2.init(2, 0),
-    rl.Vector2.init(3, 0),
+    .{ 0, 0 },
+    .{ 1, 0 },
+    .{ 2, 0 },
+    .{ 3, 0 },
 };
 pub const I_Tetrominoe: TetrominoesVarients = .{
     I_Tetrominoe13,
@@ -242,35 +243,35 @@ pub const Tetrominoes = struct {
     pub fn get_choosed_varient(self: *const Tetrominoes) *const Tetrominoe {
         return &self.get_all_varients()[self.varient_index];
     }
-    pub fn get_choosed_varient_at(self: *const Tetrominoes, position: rl.Vector2) Tetrominoe {
-        var result: Tetrominoe = @splat(rl.Vector2.zero());
+    pub fn get_choosed_varient_at(self: *const Tetrominoes, position: ziz.Vector) Tetrominoe {
+        var result: Tetrominoe = @splat(.{ 0, 0 });
         for (self.get_choosed_varient(), 0..) |x, i| {
-            result[i] = x.add(position);
+            result[i] = x + position;
         }
         return result;
     }
 
     pub fn get_lowest_blocks_at(
         self: *const Tetrominoes,
-        position: rl.Vector2,
-    ) [4]?rl.Vector2 {
+        position: ziz.Vector,
+    ) [4]?ziz.Vector {
         var grid: [4]struct { touched: bool, column: [4]f32 } = @splat(.{ .touched = false, .column = @splat(0) });
         var grid_y_tracker: [4]usize = @splat(0);
         for (self.get_choosed_varient()) |varient_block| {
-            const i: usize = @trunc(varient_block.x);
-            grid[i].column[grid_y_tracker[i]] = varient_block.y;
+            const i: usize = @trunc(varient_block[ziz.X]);
+            grid[i].column[grid_y_tracker[i]] = varient_block[ziz.Y];
             grid[i].touched = true;
             grid_y_tracker[i] += 1;
         }
 
-        var result: [4]?rl.Vector2 = @splat(null);
+        var result: [4]?ziz.Vector = @splat(null);
         for (grid, 0..) |val, i| {
             const max = array_max(f32, val.column);
             if (val.touched) {
-                result[i] = rl.Vector2.init(
+                result[i] = ziz.Vector{
                     @floatFromInt(i),
                     max,
-                ).add(position);
+                } + position;
             }
         }
         return result;
@@ -279,29 +280,29 @@ pub const Tetrominoes = struct {
     pub fn height(self: Tetrominoes) f32 {
         const xs = self.get_choosed_varient();
         return @max(
-            xs[0].y,
-            xs[1].y,
-            xs[2].y,
-            xs[3].y,
+            xs[0][ziz.Y],
+            xs[1][ziz.Y],
+            xs[2][ziz.Y],
+            xs[3][ziz.Y],
         );
     }
 
     pub fn width(self: Tetrominoes) f32 {
         const xs = self.get_choosed_varient();
         return @max(
-            xs[0].x,
-            xs[1].x,
-            xs[2].x,
-            xs[3].x,
+            xs[0][ziz.X],
+            xs[1][ziz.X],
+            xs[2][ziz.X],
+            xs[3][ziz.X],
         );
     }
-    pub fn width_at(self: Tetrominoes, position: rl.Vector2) f32 {
+    pub fn width_at(self: Tetrominoes, position: ziz.Vector) f32 {
         const xs = self.get_choosed_varient_at(position);
         return @max(
-            xs[0].x,
-            xs[1].x,
-            xs[2].x,
-            xs[3].x,
+            xs[0][ziz.X],
+            xs[1][ziz.X],
+            xs[2][ziz.X],
+            xs[3][ziz.X],
         );
     }
 };
