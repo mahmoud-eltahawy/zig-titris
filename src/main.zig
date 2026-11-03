@@ -28,12 +28,14 @@ const State = struct {
     random: std.Random,
 
     fn moving_tetris_reached(self: *State) bool {
+        //got to the bottom
         if (self.moving_tetris.position.y ==
             HEIGHT_BOXES_CAPACITY - self.moving_tetris.tetrominoes.height() - 1)
         {
             return true;
         }
 
+        //got to lower block
         for (self.moving_tetris.tetrominoes.get_lowest_blocks_at(self.moving_tetris.position), self.tetris_closest_blocks()) |optinal_v1, optinal_v2| {
             if (optinal_v1) |v1| {
                 if (optinal_v2) |v2| {
@@ -69,7 +71,7 @@ const State = struct {
 
     fn random_veced_tetris(self: *const State) VecedTetris {
         const random_x = self.random.int(u5) % WIDTH_BOXES_CAPACITY;
-        const kinds = [6]tetr.TetrominoesKind{ .I, .L, .O, .S, .T, .Z };
+        const kinds = [7]tetr.TetrominoesKind{ .I, .L, .O, .S, .T, .Z, .J };
         const random_kind_index = self.random.int(u3) % kinds.len;
         const random_varient = self.random.int(u2);
 
@@ -90,8 +92,7 @@ const State = struct {
             }
 
             self.moving_tetris = self.random_veced_tetris();
-        }
-        if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
+        } else if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
             self.moving_tetris.position.y += 1;
             self.time_instant_in_seconds = rl.getTime();
         }

@@ -213,6 +213,7 @@ pub const TetrominoesKind = enum {
     L,
     T,
     S,
+    J,
 };
 
 fn array_max(comptime T: type, array: [4]T) T {
@@ -235,6 +236,7 @@ pub const Tetrominoes = struct {
             .L => &L_Tetrominoe,
             .T => &T_Tetrominoe,
             .S => &S_Tetrominoe,
+            .J => &J_Tetrominoe,
         };
     }
     pub fn get_choosed_varient(self: *const Tetrominoes) *const Tetrominoe {
