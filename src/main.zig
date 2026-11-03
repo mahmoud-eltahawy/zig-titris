@@ -70,15 +70,17 @@ const State = struct {
     }
 
     fn random_veced_tetris(self: *const State) VecedTetris {
-        const random_x = self.random.int(u5) % WIDTH_BOXES_CAPACITY;
         const kinds = [7]tetr.TetrominoesKind{ .I, .L, .O, .S, .T, .Z, .J };
-        const random_kind_index = self.random.int(u3) % kinds.len;
-        const random_varient = self.random.int(u2);
 
-        return .{ .position = .init(random_x, -1), .tetrominoes = .{
-            .kind = kinds[random_kind_index],
-            .varient_index = random_varient,
-        } };
+        const tetrominoes: Tetrominoes = .{
+            .kind = kinds[self.random.intRangeAtMost(u3, 0, kinds.len)],
+            .varient_index = self.random.int(u2),
+        };
+
+        const width: u5 = @intFromFloat(tetrominoes.width());
+        const random_x = self.random.intRangeAtMost(u5, 0, WIDTH_BOXES_CAPACITY - width - 1);
+
+        return .{ .position = .init(@floatFromInt(random_x), -1), .tetrominoes = tetrominoes };
     }
 
     fn update(self: *State) void {
