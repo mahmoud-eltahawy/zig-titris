@@ -66,6 +66,52 @@ pub fn handle_events(self: *@This()) void {
     }
 }
 
+const DestroyableLevels = struct {
+    index: usize,
+    len: usize,
+};
+
+fn all(arr: []const bool) bool {
+    for (arr) |it| {
+        if (!it) return false;
+    }
+    return true;
+}
+
+fn get_destroyable_levels(self: *const @This()) ?DestroyableLevels {
+    var result: ?DestroyableLevels = null;
+    for (self.static_tetris, 0..) |level, i| {
+        if (!all(&level)) {
+            continue;
+        }
+        if (result) |*res| {
+            res.len += 1;
+        } else {
+            result = .{
+                .index = i,
+                .len = 1,
+            };
+        }
+    }
+    return result;
+}
+fn destroy_destroyable_levels(self: *@This()) void {
+    const destroyable = self.get_destroyable_levels();
+    if (destroyable) |dest| {
+        var end = dest.index + dest.len;
+        while (end != 0) {
+            if (end < dest.len) {
+                break;
+            }
+            self.static_tetris[end] = self.static_tetris[end - dest.len];
+            end -= 1;
+        }
+        for (0..dest.len) |i| {
+            self.static_tetris[i] = @splat(false);
+        }
+    }
+}
+
 pub fn update(self: *@This()) void {
     if (self.moving_tetris_reached()) {
         const choosed = self
@@ -74,6 +120,7 @@ pub fn update(self: *@This()) void {
             .get_choosed_varient_at(self.moving_tetris.position);
         for (choosed) |v| {
             self.static_tetris[@trunc(v[X])][@trunc(v[Y])] = true;
+            self.destroy_destroyable_levels();
         }
 
         self.moving_tetris = self.random_veced_tetris();
