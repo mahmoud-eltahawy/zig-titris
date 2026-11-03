@@ -109,16 +109,18 @@ fn handle_events(state: *State) void {
     if (rl.isKeyPressed(.left) and state.moving_tetris.position.x > 0) {
         state.moving_tetris.position.x -= 1;
     }
-    // zig fmt: off
-    if (
-        rl.isKeyPressed(.right) and
-        state.moving_tetris.position.x
-            <
-        WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width() - 1
-    ) {
+    if (rl.isKeyPressed(.right) and
+        state.moving_tetris.position.x <
+            WIDTH_BOXES_CAPACITY - state.moving_tetris.tetrominoes.width() - 1)
+    {
         state.moving_tetris.position.x += 1;
     }
-    // zig fmt: on
+    if (rl.isKeyPressed(.space)) {
+        state.moving_tetris.tetrominoes.varient_index +%= 1;
+        if (state.moving_tetris.tetrominoes.width_at(state.moving_tetris.position) >= state.static_tetris.len) {
+            state.moving_tetris.tetrominoes.varient_index -%= 1;
+        }
+    }
 }
 
 fn draw(state: *State) !void {

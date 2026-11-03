@@ -227,10 +227,6 @@ pub const Tetrominoes = struct {
     kind: TetrominoesKind = .O,
     varient_index: u2 = 0,
 
-    fn next(self: *Tetrominoes) void {
-        self.varient_index.* +%= 1;
-    }
-
     fn get_all_varients(self: *const Tetrominoes) *const TetrominoesVarients {
         return switch (self.kind) {
             .O => &O_Tetrominoe,
@@ -290,6 +286,15 @@ pub const Tetrominoes = struct {
 
     pub fn width(self: Tetrominoes) f32 {
         const xs = self.get_choosed_varient();
+        return @max(
+            xs[0].x,
+            xs[1].x,
+            xs[2].x,
+            xs[3].x,
+        );
+    }
+    pub fn width_at(self: Tetrominoes, position: rl.Vector2) f32 {
+        const xs = self.get_choosed_varient_at(position);
         return @max(
             xs[0].x,
             xs[1].x,
