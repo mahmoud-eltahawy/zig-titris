@@ -26,6 +26,15 @@ fn is_position_acceptable(self: *const @This()) bool {
         return false;
     }
 
+    //check if it is morphed into static shapes
+    for (self.moving_tetris.tetrominoes.get_choosed_varient_at(self.moving_tetris.position)) |v| {
+        const x: usize = @trunc(v[X]);
+        const y: usize = @trunc(v[Y]);
+        if (self.static_tetris[x][y]) {
+            return false;
+        }
+    }
+
     return true;
 }
 
