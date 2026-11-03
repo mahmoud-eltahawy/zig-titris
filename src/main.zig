@@ -73,12 +73,12 @@ const State = struct {
         const kinds = std.enums.values(tetr.TetrominoesKind);
 
         const tetrominoes: Tetrominoes = .{
-            .kind = kinds[self.random.intRangeAtMost(u3, 0, kinds.len)],
+            .kind = kinds[self.random.intRangeLessThan(u3, 0, kinds.len)],
             .varient_index = self.random.int(u2),
         };
 
-        const width: u5 = @intFromFloat(tetrominoes.width());
-        const random_x = self.random.intRangeAtMost(u5, 0, WIDTH_BOXES_CAPACITY - width - 1);
+        const width: usize = @intFromFloat(tetrominoes.width());
+        const random_x = self.random.intRangeAtMost(usize, 0, WIDTH_BOXES_CAPACITY - width - 1);
 
         return .{ .position = .init(@floatFromInt(random_x), -1), .tetrominoes = tetrominoes };
     }
