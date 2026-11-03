@@ -56,8 +56,9 @@ const State = struct {
                 const column = &self.static_tetris[@trunc(v.x)];
 
                 for (column, 0..) |occupied, j| {
-                    if (occupied) {
-                        lowest[i] = rl.Vector2.init(v.x, @floatFromInt(j));
+                    const j_f32: f32 = @floatFromInt(j);
+                    if (occupied and j_f32 > v.y) {
+                        lowest[i] = rl.Vector2.init(v.x, j_f32);
                         break;
                     }
                 }
@@ -77,6 +78,24 @@ const State = struct {
             .varient_index = random_varient,
         } };
     }
+
+    fn update(self: *State) void {
+        if (self.moving_tetris_reached()) {
+            const choosed = self
+                .moving_tetris
+                .tetrominoes
+                .get_choosed_varient_at(self.moving_tetris.position);
+            for (choosed) |v| {
+                self.static_tetris[@trunc(v.x)][@trunc(v.y)] = true;
+            }
+
+            self.moving_tetris = self.random_veced_tetris();
+        }
+        if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
+            self.moving_tetris.position.y += 1;
+            self.time_instant_in_seconds = rl.getTime();
+        }
+    }
 };
 
 pub fn main(_: std.process.Init) !void {
@@ -93,6 +112,7 @@ pub fn main(_: std.process.Init) !void {
 
     while (!rl.windowShouldClose() and !state.user_closed_the_window) {
         handle_events(&state);
+        state.update();
 
         rl.beginDrawing();
         defer rl.endDrawing();
@@ -123,7 +143,7 @@ fn handle_events(state: *State) void {
     }
 }
 
-fn draw(state: *State) !void {
+fn draw(state: *const State) !void {
     rl.clearBackground(.black);
 
     if (buildin.mode == .debug) {
@@ -132,22 +152,6 @@ fn draw(state: *State) !void {
 
     draw_moving_tetris(state);
     draw_static_tetris(state);
-
-    if (state.moving_tetris_reached()) {
-        const choosed = state
-            .moving_tetris
-            .tetrominoes
-            .get_choosed_varient_at(state.moving_tetris.position);
-        for (choosed) |v| {
-            state.static_tetris[@trunc(v.x)][@trunc(v.y)] = true;
-        }
-
-        state.moving_tetris = state.random_veced_tetris();
-    }
-    if (rl.getTime() - state.time_instant_in_seconds > 0.5) {
-        state.moving_tetris.position.y += 1;
-        state.time_instant_in_seconds = rl.getTime();
-    }
 }
 
 fn draw_block(grid_pos: rl.Vector2, color: rl.Color) void {
