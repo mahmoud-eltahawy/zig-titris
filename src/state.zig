@@ -57,15 +57,28 @@ pub fn handle_events(self: *@This()) void {
     }
 }
 
-fn moving_tetris_reached(self: *@This()) bool {
-    //got to the bottom
-    if (self.moving_tetris.position[Y] ==
-        ziz.HEIGHT_BOXES_CAPACITY - self.moving_tetris.tetrominoes.height() - 1)
-    {
-        return true;
-    }
+pub fn update(self: *@This()) void {
+    if (self.moving_tetris_reached()) {
+        const choosed = self
+            .moving_tetris
+            .tetrominoes
+            .get_choosed_varient_at(self.moving_tetris.position);
+        for (choosed) |v| {
+            self.static_tetris[@trunc(v[X])][@trunc(v[Y])] = true;
+        }
 
-    //got to lower block
+        self.moving_tetris = self.random_veced_tetris();
+    } else if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
+        self.moving_tetris.position[Y] += 1;
+        self.time_instant_in_seconds = rl.getTime();
+    }
+}
+
+fn reached_the_bottom(self: *const @This()) bool {
+    return self.moving_tetris.position[Y] ==
+        ziz.HEIGHT_BOXES_CAPACITY - self.moving_tetris.tetrominoes.height() - 1;
+}
+fn reached_lower_block(self: *const @This()) bool {
     for (self.moving_tetris.tetrominoes.get_lowest_blocks_at(self.moving_tetris.position), self.tetris_closest_blocks()) |optinal_v1, optinal_v2| {
         if (optinal_v1) |v1| {
             if (optinal_v2) |v2| {
@@ -75,8 +88,11 @@ fn moving_tetris_reached(self: *@This()) bool {
             }
         }
     }
-
     return false;
+}
+
+fn moving_tetris_reached(self: *const @This()) bool {
+    return self.reached_the_bottom() or self.reached_lower_block();
 }
 
 pub fn tetris_closest_blocks(self: *const @This()) [4]?ziz.Vector {
@@ -102,7 +118,7 @@ pub fn tetris_closest_blocks(self: *const @This()) [4]?ziz.Vector {
 fn random_veced_tetris(self: *const @This()) VecedTetris {
     const kinds = std.enums.values(tetr.TetrominoesKind);
 
-    const tetrominoes: ziz.Tetrominoes = .{
+    const tetrominoes: tetr.Tetrominoes = .{
         .kind = kinds[self.random.intRangeLessThan(u3, 0, kinds.len)],
         .varient_index = self.random.int(u2),
     };
@@ -111,21 +127,4 @@ fn random_veced_tetris(self: *const @This()) VecedTetris {
     const random_x = self.random.intRangeAtMost(usize, 0, ziz.WIDTH_BOXES_CAPACITY - width - 1);
 
     return .{ .position = .{ @floatFromInt(random_x), -1 }, .tetrominoes = tetrominoes };
-}
-
-pub fn update(self: *@This()) void {
-    if (self.moving_tetris_reached()) {
-        const choosed = self
-            .moving_tetris
-            .tetrominoes
-            .get_choosed_varient_at(self.moving_tetris.position);
-        for (choosed) |v| {
-            self.static_tetris[@trunc(v[X])][@trunc(v[Y])] = true;
-        }
-
-        self.moving_tetris = self.random_veced_tetris();
-    } else if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
-        self.moving_tetris.position[Y] += 1;
-        self.time_instant_in_seconds = rl.getTime();
-    }
 }

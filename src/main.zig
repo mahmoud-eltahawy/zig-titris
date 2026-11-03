@@ -1,11 +1,10 @@
 const std = @import("std");
 const buildin = @import("builtin");
-
 const rl = @import("raylib");
 const zizris = @import("zizris");
-
 const tetr = @import("tetrominoe.zig");
-pub const Tetrominoes = tetr.Tetrominoes;
+
+const Tetrominoes = tetr.Tetrominoes;
 
 pub const WIDTH_BOXES_CAPACITY = 20;
 pub const HEIGHT_BOXES_CAPACITY = WIDTH_BOXES_CAPACITY * 2;
