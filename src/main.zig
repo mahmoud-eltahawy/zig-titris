@@ -70,7 +70,7 @@ const State = struct {
     }
 
     fn random_veced_tetris(self: *const State) VecedTetris {
-        const kinds = [7]tetr.TetrominoesKind{ .I, .L, .O, .S, .T, .Z, .J };
+        const kinds = std.enums.values(tetr.TetrominoesKind);
 
         const tetrominoes: Tetrominoes = .{
             .kind = kinds[self.random.intRangeAtMost(u3, 0, kinds.len)],
