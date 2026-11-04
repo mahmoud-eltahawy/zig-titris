@@ -89,35 +89,46 @@ fn all(arr: []const bool) bool {
 }
 
 fn get_destroyable_levels(self: *const @This()) ?DestroyableLevels {
-    var result: ?DestroyableLevels = null;
-    for (self.static_tetris, 0..) |level, i| {
-        if (!all(&level)) {
-            continue;
-        }
-        if (result) |*res| {
-            res.len += 1;
-        } else {
-            result = .{
-                .index = i,
-                .len = 1,
-            };
-        }
-    }
-    return result;
-}
-fn destroy_destroyable_levels(self: *@This()) void {
-    const destroyable = self.get_destroyable_levels();
-    if (destroyable) |dest| {
-        var end = dest.index + dest.len;
-        while (end != 0) {
-            if (end < dest.len) {
+    var y: usize = 0;
+    while (y < ziz.HEIGHT_BOXES_CAPACITY) : (y += 1) {
+        var full = true;
+        for (0..ziz.WIDTH_BOXES_CAPACITY) |x| {
+            if (!self.static_tetris[x][y]) {
+                full = false;
                 break;
             }
-            self.static_tetris[end] = self.static_tetris[end - dest.len];
-            end -= 1;
         }
-        for (0..dest.len) |i| {
-            self.static_tetris[i] = @splat(false);
+        if (!full) continue;
+
+        var len: usize = 1;
+        while (y + len < ziz.HEIGHT_BOXES_CAPACITY) : (len += 1) {
+            var next_full = true;
+            for (0..ziz.WIDTH_BOXES_CAPACITY) |x| {
+                if (!self.static_tetris[x][y + len]) {
+                    next_full = false;
+                    break;
+                }
+            }
+            if (!next_full) break;
+        }
+        return .{ .index = y, .len = len };
+    }
+    return null;
+}
+
+fn destroy_destroyable_levels(self: *@This()) void {
+    while (self.get_destroyable_levels()) |dest| {
+        var y: usize = dest.index;
+        while (y > 0) {
+            y -= 1;
+            for (0..ziz.WIDTH_BOXES_CAPACITY) |x| {
+                self.static_tetris[x][y + dest.len] = self.static_tetris[x][y];
+            }
+        }
+        for (0..dest.len) |iy| {
+            for (0..ziz.WIDTH_BOXES_CAPACITY) |x| {
+                self.static_tetris[x][iy] = false;
+            }
         }
     }
 }
