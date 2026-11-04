@@ -15,25 +15,24 @@ static_tetris: [ziz.WIDTH_BOXES_CAPACITY][ziz.HEIGHT_BOXES_CAPACITY]bool = @spla
 random: std.Random,
 
 fn is_position_acceptable(self: *const @This()) bool {
-    //be at the right of left wall
-    if (self.moving_tetris.position[X] < 0) {
-        return false;
-    }
+    // Right of the left wall.
+    if (self.moving_tetris.position[X] < 0) return false;
 
-    //be at the left of right wall
+    // Left of the right wall.
     if (self.moving_tetris.position[X] >
         ziz.WIDTH_BOXES_CAPACITY - self.moving_tetris.tetrominoes.width() - 1)
     {
         return false;
     }
 
-    //check if it is morphed into static shapes
+    const floor: f32 = @floatFromInt(ziz.HEIGHT_BOXES_CAPACITY);
+
     for (self.moving_tetris.tetrominoes.get_choosed_varient_at(self.moving_tetris.position)) |v| {
-        const x: usize = @trunc(v[X]);
-        const y: usize = @trunc(v[Y]);
-        if (self.static_tetris[x][y]) {
-            return false;
-        }
+        if (v[Y] >= floor) return false;
+
+        const x: usize = @intFromFloat(v[X]);
+        const y: usize = @intFromFloat(v[Y]);
+        if (self.static_tetris[x][y]) return false;
     }
 
     return true;
