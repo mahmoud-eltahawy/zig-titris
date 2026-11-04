@@ -255,10 +255,12 @@ pub const Tetrominoes = struct {
         self: *const Tetrominoes,
         position: ziz.Vector,
     ) [4]?ziz.Vector {
-        var grid: [4]struct { touched: bool, column: [4]f32 } = @splat(.{ .touched = false, .column = @splat(0) });
+        var grid: [4]struct { touched: bool, column: [4]f32 } =
+            @splat(.{ .touched = false, .column = @splat(0) });
         var grid_y_tracker: [4]usize = @splat(0);
+
         for (self.get_choosed_varient()) |varient_block| {
-            const i: usize = @trunc(varient_block[ziz.X]);
+            const i: usize = @intFromFloat(varient_block[ziz.X]);
             grid[i].column[grid_y_tracker[i]] = varient_block[ziz.Y];
             grid[i].touched = true;
             grid_y_tracker[i] += 1;
@@ -266,12 +268,8 @@ pub const Tetrominoes = struct {
 
         var result: [4]?ziz.Vector = @splat(null);
         for (grid, 0..) |val, i| {
-            const max = array_max(f32, val.column);
             if (val.touched) {
-                result[i] = ziz.Vector{
-                    @floatFromInt(i),
-                    max,
-                } + position;
+                result[i] = ziz.Vector{ @floatFromInt(i), array_max(f32, val.column) } + position;
             }
         }
         return result;

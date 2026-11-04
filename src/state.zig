@@ -208,7 +208,7 @@ pub fn tetris_closest_blocks(self: *const @This()) [4]?ziz.Vector {
 
     for (lowest, 0..) |optinal_v, i| {
         if (optinal_v) |v| {
-            const column = &self.static_tetris[@trunc(v[X])];
+            const column = &self.static_tetris[@intFromFloat(v[X])];
 
             for (column, 0..) |occupied, j| {
                 const j_f32: f32 = @floatFromInt(j);
