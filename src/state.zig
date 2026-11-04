@@ -139,7 +139,9 @@ pub fn update(self: *@This()) void {
             .tetrominoes
             .get_choosed_varient_at(self.moving_tetris.position);
         for (choosed) |v| {
-            self.static_tetris[@trunc(v[X])][@trunc(v[Y])] = true;
+            const x: usize = @intFromFloat(v[X]);
+            const y: usize = @intFromFloat(v[Y]);
+            self.static_tetris[x][y] = true;
             self.destroy_destroyable_levels();
         }
 
