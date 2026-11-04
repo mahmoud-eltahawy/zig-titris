@@ -27,7 +27,11 @@ fn is_position_acceptable(self: *const @This()) bool {
 
     const floor: f32 = @floatFromInt(ziz.HEIGHT_BOXES_CAPACITY);
 
-    for (self.moving_tetris.tetrominoes.get_choosed_varient_at(self.moving_tetris.position)) |v| {
+    for (self.moving_tetris.tetrominoes
+        .get_choosed_varient_at(self.moving_tetris.position)) |v|
+    {
+        if (v[Y] < 0) continue;
+
         if (v[Y] >= floor) return false;
 
         const x: usize = @intFromFloat(v[X]);
