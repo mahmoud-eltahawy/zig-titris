@@ -67,6 +67,13 @@ fn draw_block(grid_pos: Vector, color: rl.Color) void {
     rl.drawRectangleLinesEx(rect, LINES_THICKNESS, color);
 }
 
+pub fn outline_block(grid_pos: Vector, color: rl.Color) void {
+    const scaler: @Vector(2, f32) = @splat(SINGLE_BOX_SIZE);
+    const pos = scaler * grid_pos;
+    const rect = rl.Rectangle.init(pos[X], pos[Y], SINGLE_BOX_SIZE, SINGLE_BOX_SIZE);
+    rl.drawRectangleLinesEx(rect, LINES_THICKNESS, color);
+}
+
 fn draw_moving_tetris(state: *const State) void {
     const grid_pos: Vector = state.moving_tetris.position;
     const shape: Tetrominoes = state.moving_tetris.tetrominoes;

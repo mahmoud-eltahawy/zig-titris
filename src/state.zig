@@ -2,6 +2,7 @@ const rl = @import("raylib");
 const ziz = @import("main.zig");
 const std = @import("std");
 const tetr = @import("tetrominoe.zig");
+const builtin = @import("builtin");
 
 const VecedTetris = ziz.VecedTetris;
 const X = ziz.X;
@@ -58,6 +59,15 @@ pub fn handle_events(self: *@This()) void {
             self.moving_tetris.position[X] -= 1;
         }
     }
+
+    const d = self.get_lower_block_distance();
+    if (builtin.mode == .debug) {
+        ziz.outline_block(.{ self.moving_tetris.position[X], d }, .yellow);
+    }
+    if (rl.isKeyPressed(.down)) {
+        self.moving_tetris.position[Y] = d;
+    }
+
     if (rl.isKeyPressed(.space)) {
         self.moving_tetris.tetrominoes.varient_index +%= 1;
         if (!self.is_position_acceptable()) {
@@ -134,6 +144,35 @@ fn reached_the_bottom(self: *const @This()) bool {
     return self.moving_tetris.position[Y] ==
         ziz.HEIGHT_BOXES_CAPACITY - self.moving_tetris.tetrominoes.height() - 1;
 }
+
+fn get_lower_block_distance(self: *const @This()) f32 {
+    const tetrominoes = self.moving_tetris.tetrominoes;
+    const position = self.moving_tetris.position;
+    const lowest = tetrominoes.get_lowest_blocks_at(position);
+    const floor: f32 = @floatFromInt(ziz.HEIGHT_BOXES_CAPACITY);
+
+    var min_drop: f32 = (floor - 1.0) - (position[Y] + tetrominoes.height());
+
+    for (lowest) |opt_v| {
+        const v = opt_v orelse continue;
+        const column: usize = @intFromFloat(v[X]);
+
+        var limit: f32 = floor;
+        for (self.static_tetris[column], 0..) |occupied, j| {
+            const j_f32: f32 = @floatFromInt(j);
+            if (occupied and j_f32 > v[Y]) {
+                limit = j_f32;
+                break;
+            }
+        }
+
+        const drop = limit - v[Y] - 1.0;
+        if (drop < min_drop) min_drop = drop;
+    }
+
+    return position[Y] + min_drop;
+}
+
 fn reached_lower_block(self: *const @This()) bool {
     for (self.moving_tetris.tetrominoes.get_lowest_blocks_at(self.moving_tetris.position), self.tetris_closest_blocks()) |optinal_v1, optinal_v2| {
         if (optinal_v1) |v1| {
