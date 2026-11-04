@@ -138,12 +138,14 @@ pub fn update(self: *@This()) void {
             .moving_tetris
             .tetrominoes
             .get_choosed_varient_at(self.moving_tetris.position);
+
         for (choosed) |v| {
             const x: usize = @intFromFloat(v[X]);
             const y: usize = @intFromFloat(v[Y]);
             self.static_tetris[x][y] = true;
-            self.destroy_destroyable_levels();
         }
+
+        self.destroy_destroyable_levels();
 
         self.moving_tetris = self.random_veced_tetris();
     } else if (rl.getTime() - self.time_instant_in_seconds > 0.5) {
