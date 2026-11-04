@@ -41,3 +41,8 @@ The debug build draws extra helpers on screen (the lowest-block markers and a cr
 
 Closing the window also quits.
 
+# show
+
+![0](./000.png)
+![1](./001.png)
+![2](./002.png)
