@@ -26,7 +26,7 @@ pub const VecedTetris = struct {
 
 const State = @import("state.zig");
 
-pub fn main(_: std.process.Init) !void {
+pub fn main() !void {
     const random = blk: {
         var prng = std.Random.DefaultPrng.init(7720);
         const random = prng.random();

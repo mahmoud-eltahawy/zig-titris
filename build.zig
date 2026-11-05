@@ -1,39 +1,87 @@
 const std = @import("std");
+const builtin = @import("builtin");
+const rlz = @import("raylib_zig");
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{
-        .name = "zizris",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("src/main.zig"),
-            .target = target,
-            .optimize = optimize,
-        }),
-    });
-
     const raylib_dep = b.dependency("raylib_zig", .{
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = optimize,
     });
 
-    const raylib = raylib_dep.module("raylib"); // main raylib module
-    const raygui = raylib_dep.module("raygui"); // raygui module
-    const raylib_artifact = raylib_dep.artifact("raylib"); // raylib C library
+    const raylib = raylib_dep.module("raylib");
+    const raylib_artifact = raylib_dep.artifact("raylib");
 
-    exe.root_module.linkLibrary(raylib_artifact);
-    exe.root_module.addImport("raylib", raylib);
-    exe.root_module.addImport("raygui", raygui);
-
-    b.installArtifact(exe);
+    const exe_mod = b.createModule(.{
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    exe_mod.addImport("raylib", raylib);
 
     const run_step = b.step("run", "Run the app");
 
-    const run_cmd = b.addRunArtifact(exe);
-    run_step.dependOn(&run_cmd.step);
+    // Web exports are a completely separate path.
+    if (target.query.os_tag == .emscripten) {
+        const emsdk = rlz.emsdk;
 
-    run_cmd.step.dependOn(b.getInstallStep());
+        const wasm = b.addLibrary(.{
+            .name = "zizris",
+            .root_module = exe_mod,
+        });
 
-    run_cmd.addPassthruArgs();
+        const install_dir: std.Build.InstallDir = .{ .custom = "web" };
+        const html_filename = b.fmt("{s}.html", .{wasm.name});
+
+        const emcc_flags = emsdk.emccDefaultFlags(b.allocator, .{ .optimize = optimize });
+        const emcc_settings = emsdk.emccDefaultSettings(b.allocator, .{ .optimize = optimize });
+
+        const emcc_step = try emsdk.emccStep(
+            b,
+            &.{},
+            &.{ raylib_artifact, wasm },
+            .{
+                .optimize = optimize,
+                .flags = emcc_flags,
+                .settings = emcc_settings,
+                .shell_file_path = raylib_dep.builder
+                    .dependency("raylib", .{})
+                    .path("src/shell.html"),
+                .install_dir = install_dir,
+                .preload_paths = &.{},
+                .out_file_name = html_filename,
+            },
+        );
+
+        // Windows compatibility for emcc.bat.
+        if (builtin.os.tag == .windows) {
+            for (emcc_step.dependencies.items) |dep| {
+                const run = dep.cast(std.Build.Step.Run) orelse continue;
+                run.argv.items[0].lazy_path.lazy_path =
+                    try emsdk.path(b, "upstream/emscripten/emcc.bat");
+            }
+        }
+
+        b.getInstallStep().dependOn(emcc_step);
+
+        const emrun_step = try emsdk.emrunStep(
+            b,
+            b.graph.path(.install_prefix, b.fmt("web/{s}", .{html_filename})),
+            &.{},
+        );
+        emrun_step.dependOn(emcc_step);
+        run_step.dependOn(emrun_step);
+    } else {
+        const exe = b.addExecutable(.{
+            .name = "zizris",
+            .root_module = exe_mod,
+        });
+        b.installArtifact(exe);
+
+        const run_cmd = b.addRunArtifact(exe);
+        run_cmd.step.dependOn(b.getInstallStep());
+        run_step.dependOn(&run_cmd.step);
+    }
 }
