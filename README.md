@@ -1,5 +1,10 @@
 # Zizris
 
+## play (fullscreen before you begin)
+[play](https://mahmoud-eltahawy.github.io/zig-titris)
+> [!WARNING]
+> the left and right walls are invisible on web version
+
 A small Tetris clone written in [Zig](https://ziglang.org/), rendered with [raylib](https://www.raylib.com/) via [raylib-zig](https://github.com/raylib-zig/raylib-zig).
 
 > **This project exists purely for fun and for learning Zig.**.
